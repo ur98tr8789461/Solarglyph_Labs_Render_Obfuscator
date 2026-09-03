@@ -1,15 +1,296 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<!DOCTYPE html>
+<html lang="en" class="dark style-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In | Solarglyph Labs</title>
+    <link rel="icon" href="https://www.solarglyphlabs.com/images/Logo/SolarglyphLabsLogoCut.png" type="image/png">
 
-    <title>SolarGlyph Obfuscator</title>
-  </head>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-  <body>
-    <div id="root"></div>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
 
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Shared brand config + styles (see /shared) -->
+    <script src="/shared/theme-config.js"></script>
+    <link rel="stylesheet" href="/shared/styles.css">
+
+    <!-- Shared nav/footer components -->
+    <script src="/shared/components.js" defer></script>
+</head>
+<body class="text-apple-textLight dark:text-apple-textDark transition-colors duration-500 overflow-x-hidden">
+    <!-- Ambient blurred background layers -->
+    <div class="fixed inset-0 z-[-2] bg-cover bg-center" style="background-image: url('https://www.solarglyphlabs.com/images/Backgrounds/SolarGlyphCampus.png');"></div>
+    <div class="fixed inset-0 z-[-1] bg-white/80 dark:bg-black/75 backdrop-blur-[24px] transition-colors duration-500"></div>
+    <div class="ambient-glow animate-float" style="top: -200px; right: -200px;"></div>
+    <div class="hidden dark:block ambient-glow animate-float-delayed" style="top: 40%; left: -300px;"></div>
+
+    <!-- Navigation -->
+    <site-nav></site-nav>
+
+    <main class="relative pt-32 pb-24 lg:pt-40 min-h-screen flex items-center justify-center overflow-hidden">
+        <div class="w-full max-w-xl mx-auto px-4 sm:px-6 relative z-10">
+
+            <!-- Loading State -->
+            <div id="loading-view" class="glass-card rounded-[2.5rem] p-10 md:p-14 flex flex-col items-center justify-center animate-fade-in-up border border-solarglyph/10 dark:border-white/10">
+                <div class="w-20 h-20 rounded-full flex items-center justify-center mb-6 bg-gray-200 dark:bg-gray-800 text-gray-500 shadow-lg">
+                    <i data-lucide="loader-2" class="w-10 h-10 animate-spin"></i>
+                </div>
+                <h2 class="text-2xl font-bold tracking-tight">Checking Access...</h2>
+            </div>
+
+            <!-- Authenticated State -->
+            <div id="auth-view" class="hidden glass-card rounded-[2.5rem] p-10 md:p-14 text-center animate-fade-in-up border-t-4 border-green-500">
+                <div class="inline-flex items-center space-x-2 bg-green-500/10 text-green-600 dark:text-green-400 px-4 py-1.5 rounded-full text-xs font-semibold mb-6">
+                    <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+                    <span>Authenticated</span>
+                </div>
+
+                <h1 class="text-4xl md:text-5xl font-bold tracking-tight mb-4">Welcome back.</h1>
+                <p class="text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">Your Solarglyph Labs account is signed in.</p>
+
+                <div class="bg-white/30 dark:bg-black/20 rounded-2xl p-6 border border-white/40 dark:border-white/5 space-y-4 text-left mb-8">
+                    <div>
+                        <span class="text-sm font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 block mb-1">Email</span>
+                        <span id="user-email" class="text-gray-800 dark:text-gray-200 font-medium"></span>
+                    </div>
+                    <div>
+                        <span class="text-sm font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 block mb-1">Provider</span>
+                        <span id="user-provider" class="text-gray-800 dark:text-gray-200 font-medium"></span>
+                    </div>
+                    <div>
+                        <span class="text-sm font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 block mb-1">User ID</span>
+                        <code id="user-id" class="text-xs bg-gray-200 dark:bg-gray-800 px-2 py-1 rounded text-gray-600 dark:text-gray-400 block truncate"></code>
+                    </div>
+                </div>
+
+                <button id="sign-out-btn" class="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full glass-card font-medium text-lg hover:bg-gray-100/50 dark:hover:bg-white/10 transition-all duration-300 w-full">
+                    <i data-lucide="log-out" class="w-5 h-5"></i> Sign Out
+                </button>
+            </div>
+
+            <!-- Login / Signup State -->
+            <div id="login-view" class="hidden glass-card rounded-[3rem] p-8 md:p-12 animate-fade-in-up border border-solarglyph/10 dark:border-blue-500/20 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-64 h-64 bg-solarglyph/10 dark:bg-blue-500/20 blur-[60px] rounded-full transform translate-x-1/3 -translate-y-1/3 pointer-events-none"></div>
+
+                <div class="text-center mb-10 relative z-10">
+                    <h1 class="text-4xl md:text-5xl font-bold tracking-tight mb-3">
+                        <span id="form-title-action">Access</span>
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-400 dark:from-blue-400 dark:to-blue-600">
+                            SolarGlyph
+                        </span>
+                    </h1>
+                    <p id="form-subtitle" class="text-gray-600 dark:text-gray-400">Sign in to access your tools.</p>
+                </div>
+
+                <div class="space-y-4 mb-8 relative z-10">
+                    <button onclick="handleOAuth('github')" class="w-full px-6 py-3.5 rounded-full glass-card font-medium text-base hover:bg-gray-100/50 dark:hover:bg-white/10 transition-all duration-300 flex items-center justify-center gap-3 border border-gray-200 dark:border-white/10">
+                        <i data-lucide="github" class="w-5 h-5"></i> Continue with GitHub
+                    </button>
+                    <button onclick="handleOAuth('discord')" class="w-full px-6 py-3.5 rounded-full glass-card font-medium text-base hover:bg-gray-100/50 dark:hover:bg-white/10 transition-all duration-300 flex items-center justify-center gap-3 border border-gray-200 dark:border-white/10">
+                        <i data-lucide="message-square" class="w-5 h-5"></i> Continue with Discord
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-4 mb-8 relative z-10">
+                    <div class="h-px bg-gray-300 dark:bg-gray-700 flex-1"></div>
+                    <span class="text-xs font-semibold text-gray-400 tracking-widest uppercase">Or</span>
+                    <div class="h-px bg-gray-300 dark:bg-gray-700 flex-1"></div>
+                </div>
+
+                <form id="email-form" class="space-y-5 relative z-10">
+                    <div class="space-y-1">
+                        <label class="text-sm font-medium text-gray-700 dark:text-gray-300 pl-1">Email Address</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <i data-lucide="mail" class="w-5 h-5 text-gray-400"></i>
+                            </div>
+                            <input id="email-input" type="email" required placeholder="you@example.com" class="w-full bg-white/50 dark:bg-black/30 rounded-2xl py-3.5 pl-11 pr-4 border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all backdrop-blur-sm placeholder:text-gray-400" />
+                        </div>
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="text-sm font-medium text-gray-700 dark:text-gray-300 pl-1">Password</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <i data-lucide="lock" class="w-5 h-5 text-gray-400"></i>
+                            </div>
+                            <input id="password-input" type="password" required placeholder="••••••••" class="w-full bg-white/50 dark:bg-black/30 rounded-2xl py-3.5 pl-11 pr-4 border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all backdrop-blur-sm placeholder:text-gray-400" />
+                        </div>
+                    </div>
+
+                    <div id="message-container" class="hidden p-4 bg-blue-500/10 text-blue-600 dark:text-blue-300 rounded-2xl text-sm border border-blue-500/20 flex items-start gap-3">
+                        <i data-lucide="check-circle-2" class="w-5 h-5 flex-shrink-0"></i>
+                        <p id="message-text"></p>
+                    </div>
+
+                    <button type="submit" id="submit-btn" class="w-full px-8 py-4 rounded-full bg-solarglyph text-white font-medium text-lg hover:shadow-xl hover:shadow-solarglyph/30 hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2 group mt-2">
+                        <span id="submit-text">Sign In</span>
+                        <i data-lucide="arrow-right" class="w-5 h-5 group-hover:translate-x-1 transition-transform"></i>
+                    </button>
+                </form>
+
+                <div class="mt-8 text-center relative z-10">
+                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                        <span id="toggle-text">Don't have an account?</span>
+                        <button id="toggle-mode-btn" type="button" class="text-blue-600 dark:text-blue-400 font-semibold hover:underline ml-1">Sign Up</button>
+                    </p>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <site-footer></site-footer>
+
+    <!-- Shared behavior: icons, dark mode, year, reveal animation, scroll links -->
+    <script src="/shared/site.js"></script>
+
+    <!-- Page-specific script -->
+    <script>
+        // --- Supabase Configuration ---
+        // TODO: replace these with your real Supabase project values.
+        // This page has no build step (unlike the old Vite app), so the
+        // values can't come from import.meta.env — swap in your actual
+        // URL/anon key, or wire up /shared/theme-config.js to expose them.
+        const SUPABASE_URL = "https://xuhohaetbviveewgeiub.supabase.co";
+        const SUPABASE_ANON_KEY = "sb_publishable_V_h9hhxlQ_xH4WaNZrh9Wg_7Tt0nDbb";
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // --- State Variables ---
+        let isSignUp = false;
+        let currentUser = null;
+
+        // --- DOM Elements ---
+        const viewLoading = document.getElementById('loading-view');
+        const viewAuth = document.getElementById('auth-view');
+        const viewLogin = document.getElementById('login-view');
+
+        const formTitleAction = document.getElementById('form-title-action');
+        const formSubtitle = document.getElementById('form-subtitle');
+        const submitText = document.getElementById('submit-text');
+        const toggleText = document.getElementById('toggle-text');
+        const toggleModeBtn = document.getElementById('toggle-mode-btn');
+
+        const emailForm = document.getElementById('email-form');
+        const emailInput = document.getElementById('email-input');
+        const passwordInput = document.getElementById('password-input');
+        const submitBtn = document.getElementById('submit-btn');
+        const signOutBtn = document.getElementById('sign-out-btn');
+
+        const messageContainer = document.getElementById('message-container');
+        const messageText = document.getElementById('message-text');
+
+        // --- UI Functions ---
+        function showMessage(text, isError = false) {
+            messageText.textContent = text;
+            messageContainer.classList.remove('hidden');
+            if (isError) {
+                messageContainer.classList.remove('bg-blue-500/10', 'text-blue-600', 'dark:text-blue-300', 'border-blue-500/20');
+                messageContainer.classList.add('bg-red-500/10', 'text-red-600', 'dark:text-red-400', 'border-red-500/20');
+            } else {
+                messageContainer.classList.remove('bg-red-500/10', 'text-red-600', 'dark:text-red-400', 'border-red-500/20');
+                messageContainer.classList.add('bg-blue-500/10', 'text-blue-600', 'dark:text-blue-300', 'border-blue-500/20');
+            }
+        }
+
+        function toggleMode() {
+            isSignUp = !isSignUp;
+            messageContainer.classList.add('hidden');
+
+            formTitleAction.textContent = isSignUp ? "Join" : "Access";
+            formSubtitle.textContent = isSignUp ? "Create your account to get started." : "Sign in to access your tools.";
+            submitText.textContent = isSignUp ? "Create Account" : "Sign In";
+            toggleText.textContent = isSignUp ? "Already have an account?" : "Don't have an account?";
+            toggleModeBtn.textContent = isSignUp ? "Sign In" : "Sign Up";
+        }
+
+        function getProvider(user) {
+            const provider = user.app_metadata?.provider || (user.identities && user.identities[0]?.provider);
+            const formatted = { github: "GitHub", discord: "Discord", email: "Email" };
+            return provider ? (formatted[provider] || provider) : "Unknown";
+        }
+
+        function updateUI(user) {
+            viewLoading.classList.add('hidden');
+            if (user) {
+                viewLogin.classList.add('hidden');
+                viewAuth.classList.remove('hidden');
+                document.getElementById('user-email').textContent = user.email || "No email available";
+                document.getElementById('user-provider').textContent = getProvider(user);
+                document.getElementById('user-id').textContent = user.id;
+            } else {
+                viewAuth.classList.add('hidden');
+                viewLogin.classList.remove('hidden');
+            }
+            lucide.createIcons();
+        }
+
+        // --- Event Listeners ---
+        toggleModeBtn.addEventListener('click', toggleMode);
+
+        emailForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            submitBtn.disabled = true;
+            submitText.textContent = "Please wait...";
+            messageContainer.classList.add('hidden');
+
+            const email = emailInput.value;
+            const password = passwordInput.value;
+
+            try {
+                if (isSignUp) {
+                    const { error } = await supabase.auth.signUp({ email, password });
+                    if (error) throw error;
+                    showMessage("Account created! Check your email to verify your account.");
+                } else {
+                    const { error } = await supabase.auth.signInWithPassword({ email, password });
+                    if (error) throw error;
+                }
+            } catch (error) {
+                showMessage(error.message, true);
+            } finally {
+                submitBtn.disabled = false;
+                submitText.textContent = isSignUp ? "Create Account" : "Sign In";
+            }
+        });
+
+        signOutBtn.addEventListener('click', async () => {
+            signOutBtn.disabled = true;
+            signOutBtn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Signing out...';
+            lucide.createIcons();
+
+            await supabase.auth.signOut();
+
+            signOutBtn.disabled = false;
+            signOutBtn.innerHTML = '<i data-lucide="log-out" class="w-5 h-5"></i> Sign Out';
+            lucide.createIcons();
+        });
+
+        window.handleOAuth = async function(provider) {
+            messageContainer.classList.add('hidden');
+            const { error } = await supabase.auth.signInWithOAuth({
+                provider,
+                options: { redirectTo: window.location.origin }
+            });
+            if (error) showMessage(error.message, true);
+        };
+
+        // --- Authentication Listener ---
+        supabase.auth.onAuthStateChange((event, session) => {
+            currentUser = session?.user || null;
+            updateUI(currentUser);
+        });
+    </script>
+</body>
 </html>
