@@ -1,8 +1,207 @@
+
 * {
     box-sizing: border-box;
 }
 
-body {
+html,
+body,
+#root {
     margin: 0;
-    font-family: Arial, sans-serif;
+    width: 100%;
+    min-height: 100%;
+}
+
+body {
+    font-family: Inter, Arial, sans-serif;
+    background: #0b0f17;
+    color: #ffffff;
+}
+
+button,
+input {
+    font: inherit;
+}
+
+.page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.login-card {
+    width: 100%;
+    max-width: 420px;
+    padding: 32px;
+    background: #111722;
+    border: 1px solid #202938;
+    border-radius: 14px;
+}
+
+.brand {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.logo {
+    width: 38px;
+    height: 38px;
+    margin: 0 auto 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    background: #18253a;
+    color: #5b9cff;
+    font-size: 20px;
+}
+
+.brand h1 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.brand span {
+    color: #7f8ba3;
+    font-size: 13px;
+}
+
+.header {
+    margin-bottom: 24px;
+}
+
+.header h2 {
+    margin: 0 0 7px;
+    font-size: 22px;
+    font-weight: 600;
+}
+
+.header p {
+    margin: 0;
+    color: #7f8ba3;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.oauth-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.oauth-button {
+    flex: 1;
+    height: 42px;
+    border: 1px solid #293448;
+    border-radius: 8px;
+    background: #151c28;
+    color: #ffffff;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.oauth-button:hover {
+    background: #1a2332;
+    border-color: #3a4960;
+}
+
+.oauth-button:disabled,
+.submit-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 24px 0;
+    color: #566176;
+    font-size: 11px;
+}
+
+.divider::before,
+.divider::after {
+    content: "";
+    height: 1px;
+    flex: 1;
+    background: #202938;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+}
+
+.form label {
+    margin-bottom: 7px;
+    color: #b8c1d1;
+    font-size: 13px;
+}
+
+.form input {
+    width: 100%;
+    height: 42px;
+    margin-bottom: 16px;
+    padding: 0 12px;
+    border: 1px solid #293448;
+    border-radius: 8px;
+    outline: none;
+    background: #0d131d;
+    color: #ffffff;
+}
+
+.form input::placeholder {
+    color: #566176;
+}
+
+.form input:focus {
+    border-color: #4f8fe8;
+}
+
+.submit-button {
+    height: 42px;
+    margin-top: 2px;
+    border: none;
+    border-radius: 8px;
+    background: #3f82e8;
+    color: #ffffff;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.submit-button:hover {
+    background: #3476d8;
+}
+
+.message {
+    margin-top: 16px;
+    padding: 10px 12px;
+    border-radius: 7px;
+    background: #151c28;
+    color: #aeb9cb;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.switch {
+    margin-top: 22px;
+    text-align: center;
+    color: #7f8ba3;
+    font-size: 13px;
+}
+
+.switch button {
+    margin-left: 5px;
+    padding: 0;
+    border: none;
+    background: none;
+    color: #5b9cff;
+    cursor: pointer;
+}
+
+.switch button:hover {
+    text-decoration: underline;
 }
