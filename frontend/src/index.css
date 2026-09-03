@@ -16,7 +16,13 @@ body {
     background: #0b0f17;
     color: #ffffff;
 }
-
+code {
+    display: block;
+    margin-top: 4px;
+    word-break: break-all;
+    color: #7fafff;
+    font-size: 12px;
+}
 button,
 input {
     font: inherit;
