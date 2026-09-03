@@ -3,30 +3,31 @@ import { useEffect, useState } from "react";
 import { supabase } from "./lib/supabase";
 import type { User } from "@supabase/supabase-js";
 
+type AuthMode = "signin" | "signup";
+
 function App() {
     const [user, setUser] = useState<User | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [checkingAuth, setCheckingAuth] = useState(true);
 
+    const [mode, setMode] = useState<AuthMode>("signin");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [isSignUp, setIsSignUp] = useState(false);
-    const [authLoading, setAuthLoading] = useState(false);
+
+    const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState("");
 
     useEffect(() => {
-        // Check if the user is already signed in
-        async function getUser() {
+        async function loadUser() {
             const {
                 data: { user },
             } = await supabase.auth.getUser();
 
             setUser(user);
-            setLoading(false);
+            setCheckingAuth(false);
         }
 
-        getUser();
+        loadUser();
 
-        // Listen for authentication changes
         const {
             data: { subscription },
         } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -39,11 +40,16 @@ function App() {
     }, []);
 
     async function handleEmailAuth() {
-        setAuthLoading(true);
+        if (!email || !password) {
+            setMessage("Please enter your email and password.");
+            return;
+        }
+
+        setLoading(true);
         setMessage("");
 
         try {
-            if (isSignUp) {
+            if (mode === "signup") {
                 const { error } = await supabase.auth.signUp({
                     email,
                     password,
@@ -52,13 +58,14 @@ function App() {
                 if (error) throw error;
 
                 setMessage(
-                    "Account created! Check your email to verify your account."
+                    "Account created. Check your email to verify your account."
                 );
             } else {
-                const { error } = await supabase.auth.signInWithPassword({
-                    email,
-                    password,
-                });
+                const { error } =
+                    await supabase.auth.signInWithPassword({
+                        email,
+                        password,
+                    });
 
                 if (error) throw error;
             }
@@ -69,12 +76,14 @@ function App() {
                     : "Something went wrong."
             );
         } finally {
-            setAuthLoading(false);
+            setLoading(false);
         }
     }
 
-    async function handleOAuth(provider: "github" | "discord") {
-        setAuthLoading(true);
+    async function handleOAuth(
+        provider: "github" | "discord"
+    ) {
+        setLoading(true);
         setMessage("");
 
         const { error } = await supabase.auth.signInWithOAuth({
@@ -86,12 +95,13 @@ function App() {
 
         if (error) {
             setMessage(error.message);
-            setAuthLoading(false);
+            setLoading(false);
         }
     }
 
     async function handleSignOut() {
-        setAuthLoading(true);
+        setLoading(true);
+        setMessage("");
 
         const { error } = await supabase.auth.signOut();
 
@@ -99,190 +109,303 @@ function App() {
             setMessage(error.message);
         }
 
-        setAuthLoading(false);
+        setLoading(false);
     }
 
     function getProvider() {
         if (!user) return "Unknown";
 
-        const provider =
-            user.app_metadata?.provider ||
-            user.identities?.[0]?.provider;
-
-        if (provider === "github") return "GitHub";
-        if (provider === "discord") return "Discord";
-        if (provider === "email") return "Email";
-
-        return provider || "Unknown";
-    }
-
-    // Initial loading state
-    if (loading) {
         return (
-            <main className="page">
-                <div className="login-card">
-                    <p>Checking authentication...</p>
-                </div>
-            </main>
+            user.app_metadata?.provider ||
+            user.identities?.[0]?.provider ||
+            "Unknown"
         );
     }
 
-    // Signed-in state
+    if (checkingAuth) {
+        return (
+            <div className="app">
+                <nav className="navbar">
+                    <a className="brand" href="/">
+                        SolarGlyph Labs
+                    </a>
+                </nav>
+
+                <main className="auth-page">
+                    <div className="auth-loading">
+                        Checking your session...
+                    </div>
+                </main>
+            </div>
+        );
+    }
+
+    /*
+     * SIGNED IN
+     */
     if (user) {
         return (
-            <main className="page">
-                <div className="login-card">
-                    <div className="brand">
-                        <div className="logo">◈</div>
-                        <h1>SolarGlyph</h1>
-                        <span>Obfuscator</span>
+            <div className="app">
+                {/* NAVBAR */}
+                <nav className="navbar">
+                    <a className="brand" href="/">
+                        SolarGlyph Labs
+                    </a>
+
+                    <div className="nav-links">
+                        <a href="/">Home</a>
+                        <a href="/obfuscator">Obfuscator</a>
+                        <button
+                            onClick={handleSignOut}
+                            disabled={loading}
+                        >
+                            Sign Out
+                        </button>
+                    </div>
+                </nav>
+
+                {/* ACCOUNT */}
+                <main className="auth-page">
+                    <section className="auth-container">
+                        <div className="auth-heading">
+                            <span className="eyebrow">
+                                SOLARGLYPH LABS
+                            </span>
+
+                            <h1>You're signed in.</h1>
+
+                            <p>
+                                Your Obfuscator account is ready.
+                            </p>
+                        </div>
+
+                        <div className="account-card">
+                            <div className="status">
+                                <span className="status-dot" />
+                                Authenticated
+                            </div>
+
+                            <div className="account-row">
+                                <span>Email</span>
+                                <strong>
+                                    {user.email ||
+                                        "No email available"}
+                                </strong>
+                            </div>
+
+                            <div className="account-row">
+                                <span>Provider</span>
+                                <strong>
+                                    {getProvider()}
+                                </strong>
+                            </div>
+
+                            <div className="account-row">
+                                <span>User ID</span>
+                                <code>{user.id}</code>
+                            </div>
+                        </div>
+
+                        <button
+                            className="primary-button"
+                            onClick={() => {
+                                window.location.href =
+                                    "/obfuscator";
+                            }}
+                        >
+                            Continue to Obfuscator
+                        </button>
+                    </section>
+                </main>
+
+                {/* FOOTER */}
+                <footer className="footer">
+                    <div className="footer-content">
+                        <div>
+                            <strong>SolarGlyph Labs</strong>
+                            <p>
+                                Tools for developers, made easy.
+                            </p>
+                        </div>
+
+                        <div className="footer-links">
+                            <a href="/">Home</a>
+                            <a href="/terms">Terms</a>
+                            <a href="/privacy">Privacy</a>
+                        </div>
                     </div>
 
-                    <div className="header">
-                        <h2>You're signed in</h2>
-                        <p>Your Supabase authentication is working.</p>
+                    <div className="footer-bottom">
+                        © {new Date().getFullYear()} SolarGlyph Labs
                     </div>
-
-                    <div className="message">
-                        <strong>🟢 SIGNED IN</strong>
-
-                        <br />
-                        <br />
-
-                        <strong>Email</strong>
-                        <br />
-                        {user.email || "No email available"}
-
-                        <br />
-                        <br />
-
-                        <strong>Provider</strong>
-                        <br />
-                        {getProvider()}
-
-                        <br />
-                        <br />
-
-                        <strong>User ID</strong>
-                        <br />
-
-                        <code>{user.id}</code>
-                    </div>
-
-                    <button
-                        className="submit-button"
-                        onClick={handleSignOut}
-                        disabled={authLoading}
-                    >
-                        {authLoading ? "Signing out..." : "Sign Out"}
-                    </button>
-                </div>
-            </main>
+                </footer>
+            </div>
         );
     }
 
-    // Signed-out state
+    /*
+     * SIGNED OUT
+     */
     return (
-        <main className="page">
-            <div className="login-card">
-                <div className="brand">
-                    <div className="logo">◈</div>
-                    <h1>SolarGlyph</h1>
-                    <span>Obfuscator</span>
+        <div className="app">
+            {/* NAVBAR */}
+            <nav className="navbar">
+                <a className="brand" href="/">
+                    SolarGlyph Labs
+                </a>
+
+                <div className="nav-links">
+                    <a href="/">Home</a>
+                    <a href="/obfuscator">Obfuscator</a>
                 </div>
+            </nav>
 
-                <div className="header">
-                    <h2>
-                        {isSignUp ? "Create account" : "Welcome back"}
-                    </h2>
+            {/* AUTH */}
+            <main className="auth-page">
+                <section className="auth-container">
+                    <div className="auth-heading">
+                        <span className="eyebrow">
+                            SOLARGLYPH OBFUSCATOR
+                        </span>
 
-                    <p>
-                        {isSignUp
-                            ? "Create an account to get started."
-                            : "Sign in to continue to the Obfuscator."}
-                    </p>
-                </div>
+                        <h1>
+                            {mode === "signin"
+                                ? "Welcome back."
+                                : "Create your account."}
+                        </h1>
 
-                <div className="oauth-buttons">
-                    <button
-                        className="oauth-button"
-                        onClick={() => handleOAuth("github")}
-                        disabled={authLoading}
-                    >
-                        Continue with GitHub
-                    </button>
-
-                    <button
-                        className="oauth-button"
-                        onClick={() => handleOAuth("discord")}
-                        disabled={authLoading}
-                    >
-                        Continue with Discord
-                    </button>
-                </div>
-
-                <div className="divider">
-                    <span>OR</span>
-                </div>
-
-                <div className="form">
-                    <label>Email</label>
-
-                    <input
-                        type="email"
-                        placeholder="you@example.com"
-                        value={email}
-                        onChange={(event) =>
-                            setEmail(event.target.value)
-                        }
-                    />
-
-                    <label>Password</label>
-
-                    <input
-                        type="password"
-                        placeholder="••••••••"
-                        value={password}
-                        onChange={(event) =>
-                            setPassword(event.target.value)
-                        }
-                    />
-
-                    <button
-                        className="submit-button"
-                        onClick={handleEmailAuth}
-                        disabled={authLoading}
-                    >
-                        {authLoading
-                            ? "Please wait..."
-                            : isSignUp
-                              ? "Create Account"
-                              : "Sign In"}
-                    </button>
-                </div>
-
-                {message && (
-                    <div className="message">
-                        {message}
+                        <p>
+                            {mode === "signin"
+                                ? "Sign in to continue to SolarGlyph Obfuscator."
+                                : "Create an account to get started."}
+                        </p>
                     </div>
-                )}
 
-                <div className="switch">
-                    {isSignUp
-                        ? "Already have an account?"
-                        : "Don't have an account?"}
+                    <div className="auth-card">
+                        {/* OAUTH */}
+                        <div className="oauth-buttons">
+                            <button
+                                onClick={() =>
+                                    handleOAuth("github")
+                                }
+                                disabled={loading}
+                            >
+                                Continue with GitHub
+                            </button>
 
-                    <button
-                        onClick={() => {
-                            setIsSignUp(!isSignUp);
-                            setMessage("");
-                        }}
-                    >
-                        {isSignUp ? "Sign In" : "Sign Up"}
-                    </button>
+                            <button
+                                onClick={() =>
+                                    handleOAuth("discord")
+                                }
+                                disabled={loading}
+                            >
+                                Continue with Discord
+                            </button>
+                        </div>
+
+                        <div className="divider">
+                            <span>OR</span>
+                        </div>
+
+                        {/* EMAIL */}
+                        <div className="form">
+                            <label htmlFor="email">
+                                Email
+                            </label>
+
+                            <input
+                                id="email"
+                                type="email"
+                                placeholder="you@example.com"
+                                value={email}
+                                onChange={(event) =>
+                                    setEmail(
+                                        event.target.value
+                                    )
+                                }
+                            />
+
+                            <label htmlFor="password">
+                                Password
+                            </label>
+
+                            <input
+                                id="password"
+                                type="password"
+                                placeholder="••••••••"
+                                value={password}
+                                onChange={(event) =>
+                                    setPassword(
+                                        event.target.value
+                                    )
+                                }
+                            />
+
+                            <button
+                                className="primary-button"
+                                onClick={handleEmailAuth}
+                                disabled={loading}
+                            >
+                                {loading
+                                    ? "Please wait..."
+                                    : mode === "signin"
+                                      ? "Sign In"
+                                      : "Create Account"}
+                            </button>
+                        </div>
+
+                        {message && (
+                            <div className="auth-message">
+                                {message}
+                            </div>
+                        )}
+
+                        <div className="auth-switch">
+                            {mode === "signin"
+                                ? "Don't have an account?"
+                                : "Already have an account?"}
+
+                            <button
+                                onClick={() => {
+                                    setMode(
+                                        mode === "signin"
+                                            ? "signup"
+                                            : "signin"
+                                    );
+                                    setMessage("");
+                                }}
+                            >
+                                {mode === "signin"
+                                    ? "Sign Up"
+                                    : "Sign In"}
+                            </button>
+                        </div>
+                    </div>
+                </section>
+            </main>
+
+            {/* FOOTER */}
+            <footer className="footer">
+                <div className="footer-content">
+                    <div>
+                        <strong>SolarGlyph Labs</strong>
+                        <p>
+                            Tools for developers, made easy.
+                        </p>
+                    </div>
+
+                    <div className="footer-links">
+                        <a href="/">Home</a>
+                        <a href="/terms">Terms</a>
+                        <a href="/privacy">Privacy</a>
+                    </div>
                 </div>
-            </div>
-        </main>
+
+                <div className="footer-bottom">
+                    © {new Date().getFullYear()} SolarGlyph Labs
+                </div>
+            </footer>
+        </div>
     );
 }
 
