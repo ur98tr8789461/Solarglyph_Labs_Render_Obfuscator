@@ -85,7 +85,7 @@
 
                 <p class="text-center text-sm text-gray-600 dark:text-gray-400 mt-6 reveal active">
                     Already have an account?
-                    <a href="/login.html" class="font-medium text-solarglyph dark:text-blue-400 hover:underline">Log in</a>
+                    <a href="/Login.html" class="font-medium text-solarglyph dark:text-blue-400 hover:underline">Log in</a>
                 </p>
             </div>
 
@@ -99,7 +99,7 @@
                     <p class="text-gray-600 dark:text-gray-400 leading-relaxed">
                         We sent a confirmation link to <span id="sent-email" class="font-medium text-apple-textLight dark:text-apple-textDark"></span>. Click it to activate your account, then log in.
                     </p>
-                    <a href="/login.html" class="inline-block mt-8 text-sm font-medium text-solarglyph dark:text-blue-400 hover:underline">Back to log in</a>
+                    <a href="/Login.html" class="inline-block mt-8 text-sm font-medium text-solarglyph dark:text-blue-400 hover:underline">Back to log in</a>
                 </div>
             </div>
 
@@ -148,7 +148,7 @@
             const { data, error } = await supabaseClient.auth.signUp({
                 email,
                 password,
-                options: { emailRedirectTo: `${window.location.origin}/login.html` }
+                options: { emailRedirectTo: `${window.location.origin}/Login.html` }
             });
 
             setLoading(false);
@@ -167,14 +167,14 @@
         document.getElementById('discord-btn').addEventListener('click', async () => {
             await supabaseClient.auth.signInWithOAuth({
                 provider: 'discord',
-                options: { redirectTo: `${window.location.origin}/dashboard.html` }
+                options: { redirectTo: `${window.location.origin}/Dashboard.html` }
             });
         });
 
         document.getElementById('github-btn').addEventListener('click', async () => {
             await supabaseClient.auth.signInWithOAuth({
                 provider: 'github',
-                options: { redirectTo: `${window.location.origin}/dashboard.html` }
+                options: { redirectTo: `${window.location.origin}/Dashboard.html` }
             });
         });
     </script>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard (demo)</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 560px; margin: 60px auto; padding: 0 20px; color: #111; }
+  h1 { font-size: 20px; margin-bottom: 4px; }
+  p.sub { color: #666; margin-top: 0; margin-bottom: 24px; font-size: 14px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  td { padding: 10px 8px; border-bottom: 1px solid #eee; vertical-align: top; }
+  td.label { color: #666; width: 160px; font-weight: 600; }
+  td.value { word-break: break-all; }
+  button { margin-top: 20px; padding: 8px 16px; font-size: 14px; cursor: pointer; border: 1px solid #333; border-radius: 4px; background: #fff; color: #111; }
+  #loading, #not-logged-in { font-size: 14px; color: #666; }
+  #not-logged-in { display: none; }
+  #content { display: none; }
+  a { color: #06c; }
+</style>
+</head>
+<body>
+
+  <h1>Dashboard — demo</h1>
+  <p class="sub">Unstyled test page — pulls the live Supabase session and profile so we can confirm auth + data wiring before this gets designed.</p>
+
+  <div id="loading">Loading session...</div>
+
+  <div id="not-logged-in">
+    Not logged in. <a href="/login-demo.html">Go to login</a>
+  </div>
+
+  <div id="content">
+    <table>
+      <tr><td class="label">Email</td><td class="value" id="val-email"></td></tr>
+      <tr><td class="label">User ID</td><td class="value" id="val-id"></td></tr>
+      <tr><td class="label">Signed up</td><td class="value" id="val-created"></td></tr>
+      <tr><td class="label">Last sign-in</td><td class="value" id="val-last-signin"></td></tr>
+      <tr><td class="label">Auth provider</td><td class="value" id="val-provider"></td></tr>
+      <tr><td class="label">Email confirmed</td><td class="value" id="val-confirmed"></td></tr>
+      <tr><td class="label">Credit balance</td><td class="value" id="val-credits"></td></tr>
+    </table>
+
+    <button id="logout-btn">Log out</button>
+  </div>
+
+<script>
+  const SUPABASE_URL = 'YOUR_SUPABASE_PROJECT_URL';
+  const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+  const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  async function loadDashboard() {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    document.getElementById('loading').style.display = 'none';
+
+    if (!session) {
+      document.getElementById('not-logged-in').style.display = 'block';
+      return;
+    }
+
+    const user = session.user;
+
+    document.getElementById('val-email').textContent = user.email || '(none — OAuth without email scope)';
+    document.getElementById('val-id').textContent = user.id;
+    document.getElementById('val-created').textContent = new Date(user.created_at).toLocaleString();
+    document.getElementById('val-last-signin').textContent = user.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleString() : '—';
+    document.getElementById('val-provider').textContent = user.app_metadata?.provider || 'email';
+    document.getElementById('val-confirmed').textContent = user.email_confirmed_at ? 'Yes' : 'No';
+
+    // Credits: reads from a `profiles` table keyed by user id (credits_balance column),
+    // per the schema from earlier planning. Falls back to a placeholder if the table
+    // isn't set up yet, so this page still works before that migration exists.
+    const { data: profile, error: profileError } = await supabaseClient
+      .from('profiles')
+      .select('credits_balance')
+      .eq('id', user.id)
+      .single();
+
+    document.getElementById('val-credits').textContent = profileError
+      ? '(profiles table not set up yet)'
+      : profile.credits_balance;
+
+    document.getElementById('content').style.display = 'block';
+  }
+
+  document.getElementById('logout-btn').addEventListener('click', async () => {
+    await supabaseClient.auth.signOut();
+    window.location.href = '/login-demo.html';
+  });
+
+  loadDashboard();
+</script>
+
+</body>
+</html>
