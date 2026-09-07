@@ -28,7 +28,7 @@
   <div id="loading">Loading session...</div>
 
   <div id="not-logged-in">
-    Not logged in. <a href="/login-demo.html">Go to login</a>
+    Not logged in. <a href="/Login.html">Go to login</a>
   </div>
 
   <div id="content">
@@ -46,8 +46,8 @@
   </div>
 
 <script>
-  const SUPABASE_URL = 'YOUR_SUPABASE_PROJECT_URL';
-  const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+  const SUPABASE_URL = 'https://xuhohaetbviveewgeiub.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_V_h9hhxlQ_xH4WaNZrh9Wg_7Tt0nDbb';
   const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   async function loadDashboard() {
@@ -86,7 +86,7 @@
 
   document.getElementById('logout-btn').addEventListener('click', async () => {
     await supabaseClient.auth.signOut();
-    window.location.href = '/login-demo.html';
+    window.location.href = '/Login.html';
   });
 
   loadDashboard();
