@@ -38,6 +38,26 @@
             <div class="glass-card rounded-[2rem] p-8 md:p-10 reveal active">
                 <div id="form-error" class="hidden mb-5 text-sm text-red-600 dark:text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3"></div>
 
+                <!-- OAuth options -->
+                <div class="space-y-3 mb-6">
+                    <button type="button" id="discord-btn"
+                        class="w-full flex items-center justify-center gap-3 bg-white/50 dark:bg-black/30 border border-gray-300/50 dark:border-white/10 font-medium px-6 py-3 rounded-full hover:bg-white/70 dark:hover:bg-black/50 transition-all duration-300">
+                        <img src="https://www.solarglyphlabs.com/images/ThirdPartyBranding/Discord-Symbol-White.png" alt="" class="w-5 h-5 object-contain dark:invert-0 invert">
+                        Continue with Discord
+                    </button>
+                    <button type="button" id="github-btn"
+                        class="w-full flex items-center justify-center gap-3 bg-white/50 dark:bg-black/30 border border-gray-300/50 dark:border-white/10 font-medium px-6 py-3 rounded-full hover:bg-white/70 dark:hover:bg-black/50 transition-all duration-300">
+                        <i data-lucide="github" class="w-5 h-5"></i>
+                        Continue with GitHub
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-4 mb-6">
+                    <div class="h-px flex-1 bg-gray-300/50 dark:bg-white/10"></div>
+                    <span class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-500">or</span>
+                    <div class="h-px flex-1 bg-gray-300/50 dark:bg-white/10"></div>
+                </div>
+
                 <form id="login-form" class="space-y-5">
                     <div>
                         <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email</label>
@@ -121,6 +141,20 @@
 
             // Successful login — send them to the dashboard
             window.location.href = '/Dashboard.html';
+        });
+
+        document.getElementById('discord-btn').addEventListener('click', async () => {
+            await supabaseClient.auth.signInWithOAuth({
+                provider: 'discord',
+                options: { redirectTo: `${window.location.origin}/Dashboard.html` }
+            });
+        });
+
+        document.getElementById('github-btn').addEventListener('click', async () => {
+            await supabaseClient.auth.signInWithOAuth({
+                provider: 'github',
+                options: { redirectTo: `${window.location.origin}/Dashboard.html` }
+            });
         });
     </script>
 </body>
