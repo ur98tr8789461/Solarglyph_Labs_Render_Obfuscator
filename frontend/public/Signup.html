@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en" class="dark style-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up | Solarglyph Labs</title>
+    <link rel="icon" href="https://www.solarglyphlabs.com/images/Logo/SolarglyphLabsLogoCut.png" type="image/png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script src="/shared/theme-config.js"></script>
+    <link rel="stylesheet" href="/shared/styles.css">
+    <script src="/shared/components.js" defer></script>
+
+    <!-- Supabase client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="text-apple-textLight dark:text-apple-textDark transition-colors duration-500 overflow-x-hidden">
+    <div class="fixed inset-0 z-[-2] bg-cover bg-center" style="background-image: url('https://www.solarglyphlabs.com/images/Backgrounds/SolarGlyphCampus.png');"></div>
+    <div class="fixed inset-0 z-[-1] bg-white/80 dark:bg-black/75 backdrop-blur-[24px] transition-colors duration-500"></div>
+
+    <site-nav></site-nav>
+
+    <main class="relative z-10 min-h-screen flex items-center justify-center px-4 pt-24 pb-16">
+        <div class="w-full max-w-md">
+
+            <!-- Default state: signup form -->
+            <div id="signup-view">
+                <div class="text-center mb-8 reveal active">
+                    <img src="https://www.solarglyphlabs.com/images/Logo/SolarglyphLabsLogoCut.png" alt="" class="w-10 h-10 mx-auto mb-4 opacity-90">
+                    <h1 class="text-3xl font-bold tracking-tight mb-2">Create your account</h1>
+                    <p class="text-gray-600 dark:text-gray-400">Sign up to get free credits and start obfuscating.</p>
+                </div>
+
+                <div class="glass-card rounded-[2rem] p-8 md:p-10 reveal active">
+                    <div id="form-error" class="hidden mb-5 text-sm text-red-600 dark:text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3"></div>
+
+                    <!-- OAuth options -->
+                    <div class="space-y-3 mb-6">
+                        <button type="button" id="discord-btn"
+                            class="w-full flex items-center justify-center gap-3 bg-white/50 dark:bg-black/30 border border-gray-300/50 dark:border-white/10 font-medium px-6 py-3 rounded-full hover:bg-white/70 dark:hover:bg-black/50 transition-all duration-300">
+                            <img src="https://www.solarglyphlabs.com/images/ThirdPartyBranding/Discord-Symbol-White.png" alt="" class="w-5 h-5 object-contain dark:invert-0 invert">
+                            Continue with Discord
+                        </button>
+                        <button type="button" id="github-btn"
+                            class="w-full flex items-center justify-center gap-3 bg-white/50 dark:bg-black/30 border border-gray-300/50 dark:border-white/10 font-medium px-6 py-3 rounded-full hover:bg-white/70 dark:hover:bg-black/50 transition-all duration-300">
+                            <i data-lucide="github" class="w-5 h-5"></i>
+                            Continue with GitHub
+                        </button>
+                    </div>
+
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="h-px flex-1 bg-gray-300/50 dark:bg-white/10"></div>
+                        <span class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-500">or</span>
+                        <div class="h-px flex-1 bg-gray-300/50 dark:bg-white/10"></div>
+                    </div>
+
+                    <form id="signup-form" class="space-y-5">
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email</label>
+                            <input type="email" id="email" required autocomplete="email"
+                                class="w-full px-4 py-3 rounded-xl bg-white/50 dark:bg-black/30 border border-gray-300/50 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-solarglyph dark:focus:ring-blue-400 transition-all text-apple-textLight dark:text-apple-textDark"
+                                placeholder="you@example.com">
+                        </div>
+
+                        <div>
+                            <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Password</label>
+                            <input type="password" id="password" required autocomplete="new-password" minlength="8"
+                                class="w-full px-4 py-3 rounded-xl bg-white/50 dark:bg-black/30 border border-gray-300/50 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-solarglyph dark:focus:ring-blue-400 transition-all text-apple-textLight dark:text-apple-textDark"
+                                placeholder="At least 8 characters">
+                        </div>
+
+                        <button type="submit" id="signup-btn"
+                            class="w-full flex items-center justify-center gap-2 bg-solarglyph text-white font-medium px-6 py-3.5 rounded-full hover:shadow-lg hover:shadow-solarglyph/30 hover:-translate-y-px transition-all duration-300">
+                            <i data-lucide="loader-2" class="w-4 h-4 spin hidden" id="signup-spinner"></i>
+                            <span id="signup-label">Create Account</span>
+                        </button>
+                    </form>
+                </div>
+
+                <p class="text-center text-sm text-gray-600 dark:text-gray-400 mt-6 reveal active">
+                    Already have an account?
+                    <a href="/login.html" class="font-medium text-solarglyph dark:text-blue-400 hover:underline">Log in</a>
+                </p>
+            </div>
+
+            <!-- Post-submit state: check your email -->
+            <div id="confirm-view" class="hidden text-center">
+                <div class="glass-card rounded-[2rem] p-10 reveal active">
+                    <div class="w-14 h-14 rounded-2xl bg-solarglyph/10 dark:bg-blue-500/15 flex items-center justify-center mx-auto mb-6 text-solarglyph dark:text-blue-400">
+                        <i data-lucide="mail-check" class="w-7 h-7"></i>
+                    </div>
+                    <h1 class="text-2xl font-bold tracking-tight mb-3">Check your email</h1>
+                    <p class="text-gray-600 dark:text-gray-400 leading-relaxed">
+                        We sent a confirmation link to <span id="sent-email" class="font-medium text-apple-textLight dark:text-apple-textDark"></span>. Click it to activate your account, then log in.
+                    </p>
+                    <a href="/login.html" class="inline-block mt-8 text-sm font-medium text-solarglyph dark:text-blue-400 hover:underline">Back to log in</a>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <site-footer></site-footer>
+
+    <script src="/shared/site.js"></script>
+    <style>
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spin { animation: spin 0.8s linear infinite; }
+    </style>
+    <script>
+        // ---- Supabase config: fill these in with your project's values ----
+        const SUPABASE_URL = 'https://xuhohaetbviveewgeiub.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_V_h9hhxlQ_xH4WaNZrh9Wg_7Tt0nDbb';
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const form = document.getElementById('signup-form');
+        const errorBox = document.getElementById('form-error');
+        const btn = document.getElementById('signup-btn');
+        const spinner = document.getElementById('signup-spinner');
+        const label = document.getElementById('signup-label');
+
+        function setLoading(isLoading) {
+            btn.disabled = isLoading;
+            spinner.classList.toggle('hidden', !isLoading);
+            label.textContent = isLoading ? 'Creating account...' : 'Create Account';
+        }
+
+        function showError(message) {
+            errorBox.textContent = message;
+            errorBox.classList.remove('hidden');
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            errorBox.classList.add('hidden');
+            setLoading(true);
+
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+
+            // emailRedirectTo sends them back here (or to login) once they click the confirmation link.
+            const { data, error } = await supabaseClient.auth.signUp({
+                email,
+                password,
+                options: { emailRedirectTo: `${window.location.origin}/login.html` }
+            });
+
+            setLoading(false);
+
+            if (error) {
+                showError(error.message || 'Could not create your account.');
+                return;
+            }
+
+            // Supabase project must have "Confirm email" enabled for this to actually gate login.
+            document.getElementById('sent-email').textContent = email;
+            document.getElementById('signup-view').classList.add('hidden');
+            document.getElementById('confirm-view').classList.remove('hidden');
+        });
+
+        document.getElementById('discord-btn').addEventListener('click', async () => {
+            await supabaseClient.auth.signInWithOAuth({
+                provider: 'discord',
+                options: { redirectTo: `${window.location.origin}/dashboard.html` }
+            });
+        });
+
+        document.getElementById('github-btn').addEventListener('click', async () => {
+            await supabaseClient.auth.signInWithOAuth({
+                provider: 'github',
+                options: { redirectTo: `${window.location.origin}/dashboard.html` }
+            });
+        });
+    </script>
+</body>
+</html>
