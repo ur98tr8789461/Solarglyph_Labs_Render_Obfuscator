@@ -1,0 +1,78 @@
+/* =====================================================================
+   SHARED SITE STYLES
+   Glassmorphism, ambient glows, and reveal animations used site-wide.
+===================================================================== */
+
+/* Enable native smooth scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Custom Glassmorphism Utilities */
+.glass-nav {
+    background-color: rgba(255, 255, 255, 0.5);
+    backdrop-filter: saturate(180%) blur(40px);
+    -webkit-backdrop-filter: saturate(180%) blur(40px);
+}
+.dark .glass-nav {
+    background-color: rgba(10, 10, 12, 0.5);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.glass-card {
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.08);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease, border-color 0.4s ease;
+}
+.dark .glass-card {
+    background: rgba(30, 30, 35, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.4);
+}
+.glass-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(7, 48, 75, 0.3);
+}
+.dark .glass-card:hover {
+    border-color: rgba(96, 165, 250, 0.3);
+}
+
+/* Ambient Glow Effects */
+.ambient-glow {
+    position: absolute;
+    width: 800px;
+    height: 800px;
+    background: radial-gradient(circle, rgba(7,48,75,0.15) 0%, rgba(0,0,0,0) 60%);
+    border-radius: 50%;
+    z-index: -1;
+    pointer-events: none;
+    filter: blur(60px);
+}
+.dark .ambient-glow {
+    background: radial-gradient(circle, rgba(7,48,75,0.25) 0%, rgba(0,0,0,0) 60%);
+}
+
+/* Smooth Reveal Animation Classes */
+.reveal {
+    opacity: 0;
+    transform: translateY(40px) scale(0.95);
+    transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal.active {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+/* Interactive Magnetic Wrapper (used on Terms page buttons) */
+.magnetic-wrapper {
+    display: inline-block;
+    perspective: 1000px;
+}
+
+body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
