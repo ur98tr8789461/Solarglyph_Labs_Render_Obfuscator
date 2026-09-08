@@ -63,8 +63,9 @@ document.addEventListener("DOMContentLoaded", () => {
     // 1. Get the email address. 
     // This example looks for it in the URL (e.g., ?email=test@gmail.com)
     // If you used sessionStorage on the previous page, use: sessionStorage.getItem('resetEmail')
-    const urlParams = new URLSearchParams(window.location.search);
-    const userEmail = urlParams.get('email'); 
+   // const urlParams = new URLSearchParams(window.location.search);
+    //const userEmail = urlParams.get('email'); 
+    const userEmail = sessionStorage.getItem('resetEmail');
 
     if (userEmail) {
         // Extract the domain (e.g., "gmail.com")
