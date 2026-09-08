@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en" class="dark style-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check Email | Solarglyph Labs</title>
+    <link rel="icon" href="https://www.solarglyphlabs.com/images/Logo/SolarglyphLabsLogoCut.png" type="image/png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script src="/shared/theme-config.js"></script>
+    <link rel="stylesheet" href="/shared/styles.css">
+    <script src="/shared/components.js" defer></script>
+</head>
+<body class="text-apple-textLight dark:text-apple-textDark transition-colors duration-500 overflow-x-hidden">
+    <div class="fixed inset-0 z-[-2] bg-cover bg-center" style="background-image: url('https://www.solarglyphlabs.com/images/Backgrounds/SolarGlyphCampus.png');"></div>
+    <div class="fixed inset-0 z-[-1] bg-white/80 dark:bg-black/75 backdrop-blur-[24px] transition-colors duration-500"></div>
+
+    <site-nav></site-nav>
+
+    <main class="relative z-10 min-h-screen flex items-center justify-center px-4 pt-24 pb-16">
+        <div class="w-full max-w-md">
+
+            <div class="glass-card rounded-[2rem] p-8 md:p-12 text-center reveal active">
+                
+                <div class="w-16 h-16 mx-auto bg-solarglyph/10 dark:bg-blue-400/10 text-solarglyph dark:text-blue-400 rounded-full flex items-center justify-center mb-6">
+                    <i data-lucide="mail" class="w-8 h-8"></i>
+                </div>
+
+                <h1 class="text-3xl font-bold tracking-tight mb-4">Check your email</h1>
+                <p class="text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
+                    If an account exists, we've sent a password reset link to your email address. Please check your spam or junk folder if you don't see it.
+                </p>
+
+                <a href="/Login.html" class="w-full flex items-center justify-center gap-2 bg-white/50 dark:bg-black/30 border border-gray-300/50 dark:border-white/10 font-medium px-6 py-3.5 rounded-full hover:bg-white/70 dark:hover:bg-black/50 transition-all duration-300">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                    Back to Log In
+                </a>
+                
+            </div>
+
+        </div>
+    </main>
+
+    <site-footer></site-footer>
+
+    <script src="/shared/site.js"></script>
+</body>
+</html>

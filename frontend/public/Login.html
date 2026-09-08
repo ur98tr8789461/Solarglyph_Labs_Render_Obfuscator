@@ -121,7 +121,13 @@
             errorBox.textContent = message;
             errorBox.classList.remove('hidden');
         }
-
+// Check if user is already logged in and redirect to dashboard
+window.addEventListener('DOMContentLoaded', async () => {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (session) {
+        window.location.href = '/Dashboard.html';
+    }
+});
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             errorBox.classList.add('hidden');
