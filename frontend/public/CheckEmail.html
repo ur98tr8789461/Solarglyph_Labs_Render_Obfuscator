@@ -32,15 +32,23 @@
                     <i data-lucide="mail" class="w-8 h-8"></i>
                 </div>
 
-                <h1 class="text-3xl font-bold tracking-tight mb-4">Check your email</h1>
-                <p class="text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
-                    If an account exists, we've sent a password reset link to your email address. Please check your spam or junk folder if you don't see it.
-                </p>
+            <!-- ... existing code above ... -->
+<h1 class="text-3xl font-bold tracking-tight mb-4">Check your email</h1>
+<p class="text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
+    If an account exists, we've sent a password reset link to your email address. Please check your spam or junk folder if you don't see it.
+</p>
 
-                <a href="/Login.html" class="w-full flex items-center justify-center gap-2 bg-white/50 dark:bg-black/30 border border-gray-300/50 dark:border-white/10 font-medium px-6 py-3.5 rounded-full hover:bg-white/70 dark:hover:bg-black/50 transition-all duration-300">
-                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
-                    Back to Log In
-                </a>
+<!-- NEW: Dynamic Email Button (Hidden by default) -->
+<a id="open-email-btn" href="#" target="_blank" rel="noopener noreferrer" class="hidden w-full items-center justify-center gap-2 bg-blue-600 dark:bg-blue-500 text-white font-medium px-6 py-3.5 rounded-full hover:bg-blue-700 dark:hover:bg-blue-600 transition-all duration-300 mb-4">
+    <i data-lucide="external-link" class="w-4 h-4"></i>
+    <span id="email-btn-text">Open Email</span>
+</a>
+
+<a href="/Login.html" class="w-full flex items-center justify-center gap-2 bg-white/50 dark:bg-black/30 border border-gray-300/50 dark:border-white/10 font-medium px-6 py-3.5 rounded-full hover:bg-white/70 dark:hover:bg-black/50 transition-all duration-300">
+    <i data-lucide="arrow-left" class="w-4 h-4"></i>
+    Back to Log In
+</a>
+<!-- ... existing code below ... -->
                 
             </div>
 
@@ -50,5 +58,54 @@
     <site-footer></site-footer>
 
     <script src="/shared/site.js"></script>
+    <script>
+document.addEventListener("DOMContentLoaded", () => {
+    // 1. Get the email address. 
+    // This example looks for it in the URL (e.g., ?email=test@gmail.com)
+    // If you used sessionStorage on the previous page, use: sessionStorage.getItem('resetEmail')
+    const urlParams = new URLSearchParams(window.location.search);
+    const userEmail = urlParams.get('email'); 
+
+    if (userEmail) {
+        // Extract the domain (e.g., "gmail.com")
+        const domain = userEmail.split('@')[1]?.toLowerCase();
+        let providerName = '';
+        let providerUrl = '';
+
+        // 2. Map domains to their inbox URLs
+        if (domain === 'gmail.com') {
+            providerName = 'Gmail';
+            providerUrl = 'https://mail.google.com';
+        } else if (['outlook.com', 'hotmail.com', 'live.com'].includes(domain)) {
+            providerName = 'Outlook';
+            providerUrl = 'https://outlook.live.com';
+        } else if (domain === 'yahoo.com') {
+            providerName = 'Yahoo Mail';
+            providerUrl = 'https://mail.yahoo.com';
+        } else if (['icloud.com', 'me.com', 'mac.com'].includes(domain)) {
+            providerName = 'iCloud Mail';
+            providerUrl = 'https://www.icloud.com/mail';
+        }
+
+        // 3. If a provider was found, update and show the button
+        if (providerUrl) {
+            const emailBtn = document.getElementById('open-email-btn');
+            const emailBtnText = document.getElementById('email-btn-text');
+            
+            emailBtn.href = providerUrl;
+            emailBtnText.textContent = `Open ${providerName}`;
+            
+            // Remove 'hidden' and add 'flex' to show it with Tailwind styling
+            emailBtn.classList.remove('hidden');
+            emailBtn.classList.add('flex');
+            
+            // Re-initialize Lucide icons so the new icon renders
+            if (window.lucide) {
+                lucide.createIcons();
+            }
+        }
+    }
+});
+</script>
 </body>
 </html>
