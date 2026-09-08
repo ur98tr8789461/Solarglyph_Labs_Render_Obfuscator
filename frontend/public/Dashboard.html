@@ -27,9 +27,7 @@
 
   <div id="loading">Loading session...</div>
 
-  <div id="not-logged-in">
-    Not logged in. <a href="/Login.html">Go to login</a>
-  </div>
+
 
   <div id="content">
     <table>
@@ -54,8 +52,8 @@
     const { data: { session } } = await supabaseClient.auth.getSession();
     document.getElementById('loading').style.display = 'none';
 
-    if (!session) {
-      document.getElementById('not-logged-in').style.display = 'block';
+if (!session) {
+      window.location.href = '/Signup.html';
       return;
     }
 

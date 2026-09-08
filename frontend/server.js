@@ -2,7 +2,7 @@ const express = require("express");
 const path = require("path");
 const fs = require("fs");
 const app = express();
-const Version = "1.1.0";
+const Version = "1.2.0";
 
 const PUBLIC_DIR = path.join(__dirname, "public");
 

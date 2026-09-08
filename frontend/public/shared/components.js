@@ -17,6 +17,7 @@ const LOGOUNCUT_URL = 'https://www.solarglyphlabs.com/images/Logo/SolarglyphLabs
 const MAIN_SITE_URL = 'https://www.solarglyphlabs.com';
 const OBFUSCATE_HOME_URL = '/';
 const APP_URL = '/Signup.html';
+const Dashboard_URL = '/Dashboard.html';
 const STATUS_URL = `${MAIN_SITE_URL}/status`;
 const TERMS_URL = `${MAIN_SITE_URL}/termsandconditions`;
 const DISCORD_URL = 'https://discord.gg/CZaJZCxJxp';
@@ -72,8 +73,8 @@ class SiteNav extends HTMLElement {
                ${docsDropdown}`;
 
         const cta = isToolHome
-            ? `<a href="${APP_URL}" class="text-sm font-medium bg-solarglyph text-white px-5 py-2.5 rounded-full hover:bg-opacity-90 hover:scale-105 transition-all shadow-md">
-                    Launch App
+            ? `<a href="${Dashboard_URL}" class="text-sm font-medium bg-solarglyph text-white px-5 py-2.5 rounded-full hover:bg-opacity-90 hover:scale-105 transition-all shadow-md">
+                    Dashboard
                </a>`
             : `<a href="${DISCORD_URL}" target="_blank" class="text-sm font-medium bg-solarglyph text-white px-5 py-2.5 rounded-full hover:bg-opacity-90 hover:scale-105 transition-all shadow-md flex items-center gap-2">
                     <img src="https://www.solarglyphlabs.com/images/ThirdPartyBranding/Discord-Symbol-White.png" alt="Discord" class="w-6 h-6 object-contain"> Support Discord
@@ -130,7 +131,7 @@ class SiteFooter extends HTMLElement {
                             <h4 class="font-semibold mb-4 text-gray-900 dark:text-white">Product</h4>
                             <ul class="space-y-3 text-sm text-gray-600 dark:text-gray-400">
                                 <li><a href="${OBFUSCATE_HOME_URL}" class="hover:text-solarglyph dark:hover:text-blue-400 transition-colors">Obfuscator</a></li>
-                                <li><a href="${APP_URL}" class="hover:text-solarglyph dark:hover:text-blue-400 transition-colors">Launch App</a></li>
+                                <li><a href="${Dashboard_URL}" class="hover:text-solarglyph dark:hover:text-blue-400 transition-colors">Dashboard</a></li>
                                 <li><a href="${MAIN_SITE_URL}" class="hover:text-solarglyph dark:hover:text-blue-400 transition-colors">Solarglyph Labs</a></li>
                             </ul>
                         </div>
