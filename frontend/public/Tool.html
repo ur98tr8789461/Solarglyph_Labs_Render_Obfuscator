@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en" class="dark style-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,7 +8,6 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <!-- Inter closely mimics Apple's San Francisco font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -25,13 +24,11 @@
                         mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
                     },
                     colors: {
+                        solarglyph: '#2563eb',
+                        solarglyphLight: '#3b82f6',
                         apple: {
-                            blue: '#0071e3',
-                            dark: '#000000',
-                            light: '#f5f5f7',
-                            gray: '#1d1d1f',
-                            borderDark: '#333336',
-                            borderLight: '#d2d2d7'
+                            textDark: '#f5f5f7',
+                            textLight: '#1d1d1f',
                         }
                     }
                 }
@@ -40,16 +37,18 @@
     </script>
 
     <style>
-        /* Apple-style Scrollbars */
-        ::-webkit-scrollbar { width: 10px; height: 10px; }
+        /* Minimal Scrollbars */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(120,130,150,0.3); border-radius: 10px; border: 2px solid transparent; background-clip: padding-box; }
-        ::-webkit-scrollbar-thumb:hover { background-color: rgba(120,130,150,0.5); }
+        ::-webkit-scrollbar-thumb { background: rgba(120,130,150,0.2); border-radius: 8px; }
+        ::-webkit-scrollbar-thumb:hover { background-color: rgba(120,130,150,0.4); }
         
         textarea.script-input {
             tab-size: 4;
             background: transparent;
         }
+        textarea.script-input::placeholder { color: #9CA3AF80; }
+        .dark textarea.script-input::placeholder { color: #6B7280; }
         
         @keyframes spin { to { transform: rotate(360deg); } }
         .spin { animation: spin 0.8s linear infinite; }
@@ -65,19 +64,22 @@
         .ios-knob { transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
     </style>
 </head>
-<body class="bg-white dark:bg-apple-dark text-apple-gray dark:text-gray-100 font-sans h-screen flex flex-col overflow-hidden transition-colors duration-300">
+<body class="text-apple-textLight dark:text-apple-textDark h-screen flex flex-col overflow-hidden transition-colors duration-500 relative">
     
-    <!-- Apple-style Minimal Navigation -->
-    <nav class="h-14 w-full backdrop-blur-xl bg-white/70 dark:bg-black/70 border-b border-apple-borderLight dark:border-apple-borderDark flex items-center justify-between px-6 z-40 shrink-0">
-        <div class="flex items-center gap-2">
-            <div class="w-6 h-6 rounded-md bg-apple-blue flex items-center justify-center text-white font-bold text-xs">S</div>
+    <!-- Original Solarglyph Brand Background -->
+    <div class="fixed inset-0 z-[-2] bg-cover bg-center" style="background-image: url('https://www.solarglyphlabs.com/images/Backgrounds/SolarGlyphCampus.png');"></div>
+    <div class="fixed inset-0 z-[-1] bg-white/80 dark:bg-black/75 backdrop-blur-[24px] transition-colors duration-500"></div>
+
+    <!-- Glass Navigation -->
+    <nav class="h-14 w-full bg-white/40 dark:bg-black/40 border-b border-gray-300/40 dark:border-white/10 flex items-center justify-between px-6 z-40 shrink-0">
+        <div class="flex items-center gap-3">
+            <img src="https://www.solarglyphlabs.com/images/Logo/SolarglyphLabsLogoCut.png" alt="Logo" class="w-6 h-6">
             <span class="font-semibold tracking-tight text-sm">Solarglyph Labs</span>
         </div>
         <div class="flex items-center gap-4 text-xs font-medium">
-            <span class="text-gray-500">Workspace</span>
-            <div class="px-3 py-1.5 rounded-full bg-gray-100 dark:bg-gray-800/80 flex items-center gap-2 transition-colors">
+            <div class="px-4 py-1.5 rounded-full bg-white/50 dark:bg-black/50 border border-gray-300/40 dark:border-white/10 flex items-center gap-2 shadow-sm">
                 <span class="text-gray-500 dark:text-gray-400">Balance</span>
-                <span id="balance-display" class="font-mono text-apple-blue font-semibold">40 CR</span>
+                <span id="balance-display" class="font-mono text-solarglyph dark:text-solarglyphLight font-semibold">40 credits</span>
             </div>
         </div>
     </nav>
@@ -85,48 +87,46 @@
     <!-- Full-Bleed App Workspace -->
     <main class="flex-1 flex flex-col lg:flex-row w-full overflow-hidden relative">
         
-        <!-- LEFT COLUMN: EDITOR (Edge to Edge) -->
-        <div class="flex-1 flex flex-col border-b lg:border-b-0 lg:border-r border-apple-borderLight dark:border-apple-borderDark relative bg-white dark:bg-[#0a0a0c]">
+        <!-- LEFT COLUMN: EDITOR -->
+        <div class="flex-1 flex flex-col border-b lg:border-b-0 lg:border-r border-gray-300/40 dark:border-white/10 relative bg-white/20 dark:bg-black/20">
             
-            <!-- Header inline with editor -->
-            <div class="px-6 py-5 border-b border-apple-borderLight dark:border-apple-borderDark shrink-0 flex justify-between items-end">
-                <div>
-                    <h1 class="text-3xl font-semibold tracking-tight mb-1">Obfuscator Engine.</h1>
-                    <p class="text-gray-500 text-sm">Pro-level security for your Luau scripts.</p>
-                </div>
+            <!-- Header -->
+            <div class="px-6 py-5 shrink-0">
+                <h1 class="text-3xl font-bold tracking-tight mb-1">Obfuscator Engine</h1>
+                <p class="text-gray-600 dark:text-gray-400 text-sm">Secure your Luau scripts before deployment.</p>
             </div>
 
             <!-- Drag and Drop Overlay -->
-            <div id="drop-overlay" class="absolute inset-0 z-20 hidden bg-white/80 dark:bg-black/80 backdrop-blur-lg flex items-center justify-center transition-all">
-                <div class="flex flex-col items-center gap-4 text-apple-blue">
-                    <i data-lucide="file-plus-2" class="w-16 h-16"></i>
-                    <span class="text-2xl font-semibold tracking-tight">Drop script to load</span>
+            <div id="drop-overlay" class="absolute inset-0 z-20 hidden bg-white/60 dark:bg-black/60 backdrop-blur-md border-2 border-dashed border-solarglyph dark:border-solarglyphLight flex items-center justify-center pointer-events-none transition-all">
+                <div class="flex flex-col items-center gap-3 text-solarglyph dark:text-solarglyphLight">
+                    <i data-lucide="file-down" class="w-12 h-12"></i>
+                    <span class="font-medium tracking-wide text-lg">Drop script here to load</span>
                 </div>
             </div>
 
             <!-- Tabs -->
-            <div class="flex items-stretch border-b border-apple-borderLight dark:border-apple-borderDark bg-gray-50/50 dark:bg-[#111113] h-11 shrink-0 overflow-hidden">
+            <div class="flex items-stretch border-y border-gray-300/40 dark:border-white/10 bg-white/30 dark:bg-white/[0.02] h-12 shrink-0">
                 <div id="tab-strip" class="tab-strip flex items-stretch overflow-x-auto h-full scrollbar-none"></div>
-                <button id="add-tab-btn" class="flex items-center justify-center w-11 text-gray-400 hover:text-apple-blue transition-colors shrink-0 h-full border-l border-apple-borderLight dark:border-apple-borderDark">
+                <button id="add-tab-btn" class="flex items-center justify-center w-12 text-gray-400 hover:text-solarglyph dark:hover:text-solarglyphLight transition-colors shrink-0 h-full border-l border-gray-300/40 dark:border-white/10">
                     <i data-lucide="plus" class="w-4 h-4"></i>
                 </button>
                 <div class="flex-1"></div>
-                <button id="import-btn" class="flex items-center gap-2 px-4 text-xs font-medium text-gray-500 hover:text-black dark:hover:text-white transition-colors shrink-0 h-full border-l border-apple-borderLight dark:border-apple-borderDark" onclick="document.getElementById('file-input').click()">
-                    <i data-lucide="folder-open" class="w-4 h-4"></i> Import
+                <button id="import-btn" class="flex items-center gap-2 px-5 text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-apple-textLight dark:hover:text-apple-textDark transition-colors shrink-0 h-full border-l border-gray-300/40 dark:border-white/10" onclick="document.getElementById('file-input').click()">
+                    <i data-lucide="upload" class="w-4 h-4"></i> Import File
                 </button>
                 <input type="file" id="file-input" accept=".lua,.luau,.txt" multiple class="hidden">
             </div>
 
             <!-- Text Area -->
-            <div id="drop-zone" class="relative flex-1 group">
-                <textarea id="script-input" class="script-input absolute inset-0 w-full h-full resize-none outline-none px-6 py-6 font-mono text-[14px] leading-relaxed text-gray-800 dark:text-gray-200"
+            <div id="drop-zone" class="relative flex-1 group bg-gray-50/30 dark:bg-black/10">
+                <textarea id="script-input" class="script-input absolute inset-0 w-full h-full resize-none outline-none px-6 py-6 font-mono text-[13.5px] leading-relaxed transition-colors"
                     placeholder="-- Paste a Luau script here&#10;&#10;local function greet(name)&#10;    print('Hello, ' .. name)&#10;end" spellcheck="false"></textarea>
             </div>
             
-            <!-- Editor Footer / Status -->
-            <div class="h-8 flex items-center justify-between px-6 bg-gray-50 dark:bg-[#0a0a0c] border-t border-apple-borderLight dark:border-apple-borderDark text-[11px] font-mono text-gray-500 shrink-0">
+            <!-- Editor Footer -->
+            <div class="h-9 flex items-center justify-between px-6 bg-white/40 dark:bg-black/30 border-t border-gray-300/40 dark:border-white/10 text-[10px] uppercase tracking-widest font-mono font-medium text-gray-500 shrink-0">
                 <div id="validity-badge" class="flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-gray-400"></span> Empty
+                    <span class="w-2 h-2 rounded-full bg-gray-400 shadow-sm"></span> Empty
                 </div>
                 <div class="flex items-center gap-6">
                     <span>UTF-8</span>
@@ -136,15 +136,15 @@
             </div>
         </div>
 
-        <!-- RIGHT COLUMN: SETTINGS (Sidebar) -->
-        <aside class="w-full lg:w-[360px] flex flex-col bg-gray-50 dark:bg-[#111113] shrink-0 h-full z-10">
+        <!-- RIGHT COLUMN: SETTINGS -->
+        <aside class="w-full lg:w-[360px] flex flex-col bg-white/30 dark:bg-white/[0.02] shrink-0 h-full z-10">
             <div class="flex-1 overflow-y-auto p-6 space-y-8">
                 
                 <!-- Engine -->
                 <div>
-                    <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Engine</h3>
+                    <h3 class="text-[11px] uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2.5 font-semibold">Engine</h3>
                     <div class="relative">
-                        <select class="w-full appearance-none bg-white dark:bg-black border border-apple-borderLight dark:border-apple-borderDark rounded-xl px-4 py-3 text-sm outline-none focus:border-apple-blue dark:focus:border-apple-blue transition-colors cursor-pointer font-medium">
+                        <select class="w-full appearance-none bg-white/50 dark:bg-black/30 border border-gray-300/50 dark:border-white/10 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-solarglyph dark:focus:ring-solarglyphLight transition-all cursor-pointer">
                             <option>v1 — Standard Luau</option>
                         </select>
                         <i data-lucide="chevron-down" class="w-4 h-4 absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
@@ -153,42 +153,42 @@
 
                 <!-- Power -->
                 <div>
-                    <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Power Level</h3>
+                    <h3 class="text-[11px] uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2.5 font-semibold">Power Level</h3>
                     <div class="flex flex-col gap-2" id="power-group">
-                        <button data-power="light" class="power-btn w-full flex items-center justify-between px-4 py-3 rounded-xl border border-apple-borderLight dark:border-apple-borderDark bg-white dark:bg-black text-sm text-left transition-all">
+                        <button data-power="light" class="power-btn w-full flex items-center justify-between px-4 py-3 rounded-xl border border-gray-300/50 dark:border-white/10 hover:bg-white/40 dark:hover:bg-white/5 text-sm text-left transition-all">
                             <span class="font-medium">Light</span>
-                            <span class="text-xs font-mono text-gray-400">2 CR</span>
+                            <span class="text-xs font-mono text-gray-500">2 CR</span>
                         </button>
-                        <button data-power="standard" class="power-btn w-full flex items-center justify-between px-4 py-3 rounded-xl border-2 border-apple-blue bg-apple-blue/5 text-sm text-left transition-all">
-                            <span class="font-medium text-apple-blue">Standard</span>
-                            <span class="text-xs font-mono text-apple-blue">4 CR</span>
+                        <button data-power="standard" class="power-btn w-full flex items-center justify-between px-4 py-3 rounded-xl border border-solarglyph dark:border-solarglyphLight bg-solarglyph/10 dark:bg-solarglyphLight/10 shadow-[0_0_10px_rgba(37,99,235,0.1)] text-sm text-left transition-all">
+                            <span class="font-medium text-solarglyph dark:text-solarglyphLight">Standard</span>
+                            <span class="text-xs font-mono text-solarglyph dark:text-solarglyphLight">4 CR</span>
                         </button>
-                        <button data-power="heavy" class="power-btn w-full flex items-center justify-between px-4 py-3 rounded-xl border border-apple-borderLight dark:border-apple-borderDark bg-white dark:bg-black text-sm text-left transition-all">
+                        <button data-power="heavy" class="power-btn w-full flex items-center justify-between px-4 py-3 rounded-xl border border-gray-300/50 dark:border-white/10 hover:bg-white/40 dark:hover:bg-white/5 text-sm text-left transition-all">
                             <span class="font-medium">Heavy</span>
-                            <span class="text-xs font-mono text-gray-400">7 CR</span>
+                            <span class="text-xs font-mono text-gray-500">7 CR</span>
                         </button>
                     </div>
                 </div>
 
-                <!-- iOS Style Toggles -->
+                <!-- Glass iOS Style Toggles -->
                 <div>
-                    <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Options</h3>
-                    <div class="bg-white dark:bg-black border border-apple-borderLight dark:border-apple-borderDark rounded-xl overflow-hidden">
-                        <label class="flex items-center justify-between px-4 py-3 border-b border-apple-borderLight dark:border-apple-borderDark cursor-pointer group">
-                            <span class="text-sm font-medium">String Encryption</span>
-                            <button type="button" class="ios-toggle relative w-12 h-7 rounded-full bg-apple-blue transition-colors focus:outline-none" data-toggle="strings">
+                    <h3 class="text-[11px] uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2.5 font-semibold">Toggles</h3>
+                    <div class="bg-white/40 dark:bg-black/20 border border-gray-300/50 dark:border-white/10 rounded-xl overflow-hidden backdrop-blur-sm">
+                        <label class="flex items-center justify-between px-4 py-3 border-b border-gray-300/30 dark:border-white/5 cursor-pointer group hover:bg-white/20 dark:hover:bg-white/5 transition-colors">
+                            <span class="text-sm font-medium group-hover:text-solarglyph dark:group-hover:text-solarglyphLight transition-colors">String Encryption</span>
+                            <button type="button" class="ios-toggle relative w-12 h-7 rounded-full bg-solarglyph dark:bg-solarglyphLight transition-colors focus:outline-none" data-toggle="strings">
                                 <span class="ios-knob absolute top-[2px] left-[2px] w-6 h-6 rounded-full bg-white shadow-sm transform translate-x-5"></span>
                             </button>
                         </label>
-                        <label class="flex items-center justify-between px-4 py-3 border-b border-apple-borderLight dark:border-apple-borderDark cursor-pointer group">
-                            <span class="text-sm font-medium">Control Flow</span>
-                            <button type="button" class="ios-toggle relative w-12 h-7 rounded-full bg-apple-blue transition-colors focus:outline-none" data-toggle="controlflow">
+                        <label class="flex items-center justify-between px-4 py-3 border-b border-gray-300/30 dark:border-white/5 cursor-pointer group hover:bg-white/20 dark:hover:bg-white/5 transition-colors">
+                            <span class="text-sm font-medium group-hover:text-solarglyph dark:group-hover:text-solarglyphLight transition-colors">Control Flow</span>
+                            <button type="button" class="ios-toggle relative w-12 h-7 rounded-full bg-solarglyph dark:bg-solarglyphLight transition-colors focus:outline-none" data-toggle="controlflow">
                                 <span class="ios-knob absolute top-[2px] left-[2px] w-6 h-6 rounded-full bg-white shadow-sm transform translate-x-5"></span>
                             </button>
                         </label>
-                        <label class="flex items-center justify-between px-4 py-3 cursor-pointer group">
-                            <span class="text-sm font-medium">Minify Output</span>
-                            <button type="button" class="ios-toggle relative w-12 h-7 rounded-full bg-apple-blue transition-colors focus:outline-none" data-toggle="minify">
+                        <label class="flex items-center justify-between px-4 py-3 cursor-pointer group hover:bg-white/20 dark:hover:bg-white/5 transition-colors">
+                            <span class="text-sm font-medium group-hover:text-solarglyph dark:group-hover:text-solarglyphLight transition-colors">Minify Output</span>
+                            <button type="button" class="ios-toggle relative w-12 h-7 rounded-full bg-solarglyph dark:bg-solarglyphLight transition-colors focus:outline-none" data-toggle="minify">
                                 <span class="ios-knob absolute top-[2px] left-[2px] w-6 h-6 rounded-full bg-white shadow-sm transform translate-x-5"></span>
                             </button>
                         </label>
@@ -197,50 +197,58 @@
             </div>
 
             <!-- Fixed Action Footer -->
-            <div class="p-6 border-t border-apple-borderLight dark:border-apple-borderDark bg-white dark:bg-[#111113] shrink-0">
+            <div class="p-6 border-t border-gray-300/40 dark:border-white/10 bg-white/40 dark:bg-black/30 shrink-0 backdrop-blur-md">
                 <div class="flex justify-between items-center mb-4">
-                    <span class="text-sm text-gray-500 font-medium">Estimated Cost</span>
-                    <span id="total-cost" class="text-xl font-semibold font-mono tracking-tight">0 CR</span>
+                    <span class="text-sm text-gray-500 dark:text-gray-400">Total Cost</span>
+                    <span id="total-cost" class="text-xl font-semibold font-mono tracking-tight text-apple-textLight dark:text-white">0 CR</span>
                 </div>
-                <button id="open-modal-btn" disabled class="w-full bg-apple-blue hover:bg-blue-600 disabled:bg-gray-200 dark:disabled:bg-gray-800 disabled:text-gray-400 text-white py-3.5 rounded-xl font-medium transition-all duration-200 flex items-center justify-center gap-2">
-                    Review & Process
+                <button id="open-modal-btn" disabled class="w-full bg-solarglyph dark:bg-blue-600 disabled:bg-gray-300/50 dark:disabled:bg-white/10 disabled:text-gray-500 text-white py-3.5 rounded-xl font-medium hover:not-disabled:shadow-[0_4px_14px_rgba(37,99,235,0.3)] hover:not-disabled:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2">
+                    Review & Process <i data-lucide="arrow-right" class="w-4 h-4"></i>
                 </button>
             </div>
         </aside>
     </main>
 
-    <!-- Apple-style Modal (Action Sheet / Dialog) -->
+    <!-- Glass Modal -->
     <div id="receipt-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center">
-        <div class="absolute inset-0 bg-black/30 dark:bg-black/50 backdrop-blur-sm transition-opacity" id="close-modal-bg"></div>
-        <div class="relative w-full max-w-sm mx-4 bg-white dark:bg-[#1c1c1e] rounded-2xl shadow-2xl overflow-hidden transition-all transform scale-95 opacity-0" id="modal-content">
+        <div class="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-md transition-opacity" id="close-modal-bg"></div>
+        <div class="relative w-full max-w-md mx-4 bg-white/80 dark:bg-black/70 backdrop-blur-2xl border border-gray-300/50 dark:border-white/10 rounded-[2rem] shadow-2xl overflow-hidden transition-all transform scale-95 opacity-0" id="modal-content">
             
-            <div class="p-5 text-center border-b border-apple-borderLight dark:border-apple-borderDark relative">
-                <h3 class="text-lg font-semibold tracking-tight">Confirm Request</h3>
-                <p class="text-xs text-gray-500 mt-1">Review your files before spending credits.</p>
+            <div class="p-6 border-b border-gray-300/30 dark:border-white/10 flex items-center justify-between">
+                <h3 class="text-xl font-bold tracking-tight">Confirm Request</h3>
+                <button id="close-modal-btn" class="text-gray-400 hover:text-gray-700 dark:hover:text-white transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
             </div>
 
-            <div id="modal-receipt-body" class="p-0">
-                <div id="modal-recipe-list" class="max-h-48 overflow-y-auto px-5 py-2"></div>
-                <div class="bg-gray-50 dark:bg-black px-5 py-4 border-t border-apple-borderLight dark:border-apple-borderDark">
-                    <div class="flex justify-between items-center mb-1">
-                        <span class="text-sm text-gray-500">Total</span>
-                        <span id="modal-total-cost" class="font-mono font-semibold">0 CR</span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-xs text-gray-400">Remaining</span>
-                        <span id="modal-balance-after" class="font-mono text-xs text-apple-blue"></span>
+            <div id="modal-receipt-body">
+                <div class="p-6 pb-4">
+                    <div id="modal-recipe-list" class="space-y-1 mb-6 max-h-48 overflow-y-auto"></div>
+                    
+                    <div class="bg-gray-100/50 dark:bg-white/5 rounded-xl p-4 border border-gray-300/30 dark:border-white/5">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm text-gray-500 dark:text-gray-400">Total Cost</span>
+                            <span id="modal-total-cost" class="font-mono font-semibold">0 CR</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-500 dark:text-gray-400">Remaining Balance</span>
+                            <span id="modal-balance-after" class="font-mono text-sm text-solarglyph dark:text-solarglyphLight"></span>
+                        </div>
                     </div>
                 </div>
-                <!-- Action Buttons -->
-                <div class="flex border-t border-apple-borderLight dark:border-apple-borderDark">
-                    <button id="cancel-modal-btn" class="flex-1 py-4 text-sm font-medium text-gray-500 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors border-r border-apple-borderLight dark:border-apple-borderDark">Cancel</button>
-                    <button id="confirm-obfuscate-btn" class="flex-1 py-4 text-sm font-semibold text-apple-blue hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">Confirm</button>
+                
+                <div class="flex p-6 pt-2 gap-3 border-t border-gray-300/30 dark:border-white/10 mt-2">
+                    <button id="cancel-modal-btn" class="flex-1 py-3 rounded-xl border border-gray-300/50 dark:border-white/10 font-medium text-gray-600 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-white/10 transition-colors">Cancel</button>
+                    <button id="confirm-obfuscate-btn" class="flex-1 py-3 rounded-xl bg-solarglyph dark:bg-blue-600 text-white font-medium hover:shadow-lg transition-all flex items-center justify-center gap-2">
+                        <i data-lucide="check" class="w-4 h-4"></i> Confirm & Pay
+                    </button>
                 </div>
             </div>
 
-            <div class="p-10 hidden flex-col items-center justify-center text-center space-y-4" id="modal-waiting-body">
-                <i data-lucide="loader-circle" class="w-10 h-10 text-apple-blue spin mx-auto"></i>
-                <h3 class="font-semibold">Processing...</h3>
+            <div class="p-10 hidden flex-col items-center justify-center text-center space-y-4 min-h-[300px]" id="modal-waiting-body">
+                <i data-lucide="loader-2" class="w-12 h-12 text-solarglyph dark:text-solarglyphLight spin mx-auto"></i>
+                <h3 class="text-lg font-semibold">Obfuscating Scripts...</h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Please do not close this window.</p>
             </div>
         </div>
     </div>
@@ -287,13 +295,13 @@
             scripts.forEach(s => {
                 const tab = document.createElement('button');
                 const isActive = s.id === activeId;
-                tab.className = `group flex items-center gap-2 px-5 py-3 text-[13px] border-r border-apple-borderLight dark:border-apple-borderDark shrink-0 transition-colors font-mono ${
-                    isActive ? 'bg-white dark:bg-[#0a0a0c] text-black dark:text-white border-b-0' : 'text-gray-500 hover:text-gray-800 dark:hover:text-gray-200'
+                tab.className = `group flex items-center gap-2 px-5 py-3 text-[13px] border-r border-gray-300/40 dark:border-white/10 shrink-0 transition-colors font-mono ${
+                    isActive ? 'bg-white/60 dark:bg-white/[0.08] text-apple-textLight dark:text-white shadow-[inset_0_-2px_0_0_var(--tw-color-solarglyph)] dark:shadow-[inset_0_-2px_0_0_#3b82f6]' : 'text-gray-500 dark:text-gray-400 hover:bg-white/20 dark:hover:bg-white/[0.02] hover:text-gray-800 dark:hover:text-gray-200'
                 }`;
                 tab.innerHTML = `
-                    <span class="w-2 h-2 rounded-full ${s.valid ? 'bg-green-500' : (s.content ? 'bg-red-500' : 'bg-gray-400')}"></span>
+                    <span class="w-2 h-2 rounded-full ${s.valid ? 'bg-green-500 shadow-[0_0_5px_rgba(34,197,94,0.4)]' : (s.content ? 'bg-red-500' : 'bg-gray-400')}"></span>
                     <span>${s.name}</span>
-                    ${scripts.length > 1 ? `<i data-lucide="x" class="w-3.5 h-3.5 ml-2 opacity-0 group-hover:opacity-100 hover:text-red-500 transition-opacity"></i>` : ''}
+                    ${scripts.length > 1 ? `<i data-lucide="x" class="w-3.5 h-3.5 ml-2 opacity-0 group-hover:opacity-100 hover:!text-red-500 transition-opacity"></i>` : ''}
                 `;
                 tab.addEventListener('click', (e) => {
                     if (e.target.closest('[data-lucide="x"]')) {
@@ -330,7 +338,7 @@
             const badge = el('validity-badge');
             const count = el('char-count');
             if (!active || !active.content) {
-                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-gray-400"></span> Empty';
+                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-gray-400 shadow-sm shadow-gray-400/50"></span> Empty';
                 count.textContent = '0 chars';
             } else if (active.valid) {
                 badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span> Ready';
@@ -374,31 +382,31 @@
             btn.addEventListener('click', () => {
                 settings.power = btn.dataset.power;
                 document.querySelectorAll('.power-btn').forEach(b => {
-                    b.className = 'power-btn w-full flex items-center justify-between px-4 py-3 rounded-xl border border-apple-borderLight dark:border-apple-borderDark bg-white dark:bg-black text-sm text-left transition-all';
+                    b.className = 'power-btn w-full flex items-center justify-between px-4 py-3 rounded-xl border border-gray-300/50 dark:border-white/10 hover:bg-white/40 dark:hover:bg-white/5 text-sm text-left transition-all';
                     b.querySelector('span:first-child').className = 'font-medium';
-                    b.querySelector('span:last-child').className = 'text-xs font-mono text-gray-400';
+                    b.querySelector('span:last-child').className = 'text-xs font-mono text-gray-500';
                 });
-                btn.className = 'power-btn w-full flex items-center justify-between px-4 py-3 rounded-xl border-2 border-apple-blue bg-apple-blue/5 text-sm text-left transition-all';
-                btn.querySelector('span:first-child').className = 'font-medium text-apple-blue';
-                btn.querySelector('span:last-child').className = 'text-xs font-mono text-apple-blue';
+                btn.className = 'power-btn w-full flex items-center justify-between px-4 py-3 rounded-xl border border-solarglyph dark:border-solarglyphLight bg-solarglyph/10 dark:bg-solarglyphLight/10 shadow-[0_0_10px_rgba(37,99,235,0.1)] text-sm text-left transition-all';
+                btn.querySelector('span:first-child').className = 'font-medium text-solarglyph dark:text-solarglyphLight';
+                btn.querySelector('span:last-child').className = 'text-xs font-mono text-solarglyph dark:text-solarglyphLight';
                 updateMainButtonState();
             });
         });
 
-        // Config UI (iOS Toggles)
+        // Config UI (iOS Toggles adapted for Glass theme)
         document.querySelectorAll('.ios-toggle').forEach(sw => {
             sw.addEventListener('click', () => {
                 const key = sw.dataset.toggle;
                 settings[key] = !settings[key];
                 
                 if (settings[key]) {
-                    sw.classList.add('bg-apple-blue');
-                    sw.classList.remove('bg-gray-300', 'dark:bg-gray-600');
+                    sw.classList.add('bg-solarglyph', 'dark:bg-solarglyphLight');
+                    sw.classList.remove('bg-gray-300', 'dark:bg-white/20');
                     sw.querySelector('.ios-knob').classList.add('translate-x-5');
                     sw.querySelector('.ios-knob').classList.remove('translate-x-0');
                 } else {
-                    sw.classList.remove('bg-apple-blue');
-                    sw.classList.add('bg-gray-300', 'dark:bg-gray-600');
+                    sw.classList.remove('bg-solarglyph', 'dark:bg-solarglyphLight');
+                    sw.classList.add('bg-gray-300', 'dark:bg-white/20');
                     sw.querySelector('.ios-knob').classList.remove('translate-x-5');
                     sw.querySelector('.ios-knob').classList.add('translate-x-0');
                 }
@@ -413,20 +421,19 @@
         el('open-modal-btn').addEventListener('click', () => {
             const list = el('modal-recipe-list');
             list.innerHTML = scripts.filter(s => s.valid).map(s => `
-                <div class="flex items-center justify-between py-3 border-b border-apple-borderLight dark:border-apple-borderDark last:border-0">
-                    <span class="text-sm font-mono flex items-center gap-2"><i data-lucide="file-code" class="w-4 h-4 text-apple-blue"></i> ${s.name}</span>
+                <div class="flex items-center justify-between py-2.5 border-b border-gray-300/20 dark:border-white/5 last:border-0">
+                    <span class="text-sm font-mono flex items-center gap-2"><i data-lucide="file-code-2" class="w-4 h-4 text-solarglyph dark:text-solarglyphLight"></i> ${s.name}</span>
                     <span class="text-xs font-mono font-medium text-gray-500">${estimateCost(s)} CR</span>
                 </div>
             `).join('');
 
             el('modal-total-cost').textContent = `${currentTotalCost} CR`;
-            el('modal-balance-after').textContent = `${MOCK_BALANCE - currentTotalCost} CR remaining`;
+            el('modal-balance-after').textContent = `${MOCK_BALANCE - currentTotalCost} CR`;
 
             el('modal-receipt-body').classList.remove('hidden');
             el('modal-waiting-body').classList.add('hidden');
             
             modal.classList.remove('hidden');
-            // Small delay to allow display:block to apply before animating opacity/transform
             setTimeout(() => {
                 modalContent.classList.remove('scale-95', 'opacity-0');
                 modalContent.classList.add('scale-100', 'opacity-100');
@@ -440,6 +447,7 @@
             setTimeout(() => { modal.classList.add('hidden'); }, 300);
         };
         el('cancel-modal-btn').addEventListener('click', closeModal);
+        el('close-modal-btn').addEventListener('click', closeModal);
         el('close-modal-bg').addEventListener('click', closeModal);
 
         el('confirm-obfuscate-btn').addEventListener('click', async () => {
@@ -450,10 +458,10 @@
             await new Promise(r => setTimeout(r, 1200));
 
             confetti({
-                particleCount: 100,
-                spread: 70,
-                origin: { y: 0.6 },
-                colors: ['#0071e3', '#000000', '#ffffff'],
+                particleCount: 150,
+                spread: 80,
+                origin: { y: 0.4 },
+                colors: ['#2563eb', '#3b82f6', '#60a5fa', '#ffffff'],
                 zIndex: 9999
             });
 
