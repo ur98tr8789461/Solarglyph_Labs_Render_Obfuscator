@@ -25,8 +25,9 @@ const DOCS_URL = 'https://solarglyph-labs.gitbook.io/solarglyph-labs';
 
 class SiteNav extends HTMLElement {
     connectedCallback() {
-        const mode = this.getAttribute('page') || 'sub';
+        const mode = this.getAttribute('page') || (window.location.pathname.endsWith('/Dashboard.html') ? 'dashboard' : 'sub');
         const isToolHome = mode === 'tool';
+        const isDashboard = mode === 'dashboard';
 
         // Logo always returns to the main Solarglyph Labs site — this subdomain
         // is a product under that brand, not a separate home.
@@ -67,16 +68,23 @@ class SiteNav extends HTMLElement {
                <a href="#pricing" class="scroll-link text-sm font-medium hover:text-solarglyph dark:hover:text-blue-400 transition-colors">Pricing</a>
                <a href="${MAIN_SITE_URL}" class="text-sm font-medium hover:text-solarglyph dark:hover:text-blue-400 transition-colors">Solarglyph Labs</a>
                ${docsDropdown}`
-            : `<a href="${OBFUSCATE_HOME_URL}" class="text-sm font-medium hover:text-solarglyph dark:hover:text-blue-400 transition-colors">Obfuscate Home</a>
-               <a href="${MAIN_SITE_URL}" class="text-sm font-medium hover:text-solarglyph dark:hover:text-blue-400 transition-colors">Solarglyph Labs</a>
-               <a href="${STATUS_URL}" class="text-sm font-medium hover:text-solarglyph dark:hover:text-blue-400 transition-colors">Status</a>
-               ${docsDropdown}`;
+            : isDashboard
+                ? `<a href="${OBFUSCATE_HOME_URL}" class="text-sm font-medium hover:text-solarglyph dark:hover:text-blue-400 transition-colors">Home</a>
+                   <a href="${STATUS_URL}" class="text-sm font-medium hover:text-solarglyph dark:hover:text-blue-400 transition-colors">Status</a>
+                   <a href="${DISCORD_URL}" target="_blank" class="text-sm font-medium hover:text-solarglyph dark:hover:text-blue-400 transition-colors">Support Discord</a>
+                   ${docsDropdown}`
+                : `<a href="${OBFUSCATE_HOME_URL}" class="text-sm font-medium hover:text-solarglyph dark:hover:text-blue-400 transition-colors">Home</a>
+                   <a href="${MAIN_SITE_URL}" class="text-sm font-medium hover:text-solarglyph dark:hover:text-blue-400 transition-colors">Solarglyph Labs</a>
+                   <a href="${STATUS_URL}" class="text-sm font-medium hover:text-solarglyph dark:hover:text-blue-400 transition-colors">Status</a>
+                   ${docsDropdown}`;
 
         const cta = isToolHome
             ? `<a href="${Dashboard_URL}" class="text-sm font-medium bg-solarglyph text-white px-5 py-2.5 rounded-full hover:bg-opacity-90 hover:scale-105 transition-all shadow-md">
                     Dashboard
                </a>`
-            : `<a href="${DISCORD_URL}" target="_blank" class="text-sm font-medium bg-solarglyph text-white px-5 py-2.5 rounded-full hover:bg-opacity-90 hover:scale-105 transition-all shadow-md flex items-center gap-2">
+            : isDashboard
+                ? ''
+                : `<a href="${DISCORD_URL}" target="_blank" class="text-sm font-medium bg-solarglyph text-white px-5 py-2.5 rounded-full hover:bg-opacity-90 hover:scale-105 transition-all shadow-md flex items-center gap-2">
                     <img src="https://www.solarglyphlabs.com/images/ThirdPartyBranding/Discord-Symbol-White.png" alt="Discord" class="w-6 h-6 object-contain"> Support Discord
                </a>`;
 

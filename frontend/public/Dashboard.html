@@ -25,7 +25,7 @@
     <div class="fixed inset-0 z-[-2] bg-cover bg-center" style="background-image: url('https://www.solarglyphlabs.com/images/Backgrounds/SolarGlyphCampus.png');"></div>
     <div class="fixed inset-0 z-[-1] bg-white/80 dark:bg-black/75 backdrop-blur-[24px] transition-colors duration-500"></div>
 
-    <site-nav></site-nav>
+    <site-nav page="dashboard"></site-nav>
 
     <main class="relative z-10 min-h-screen pt-32 pb-16 px-4 max-w-5xl mx-auto flex flex-col">
         
@@ -44,10 +44,16 @@
                     <h1 class="text-3xl font-bold tracking-tight mb-1">Dashboard</h1>
                     <p class="text-gray-600 dark:text-gray-400">Manage your account and view your obfuscation credits.</p>
                 </div>
-                <button id="logout-btn" class="flex items-center gap-2 px-5 py-2.5 bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20 border border-red-500/20 rounded-full font-medium transition-all duration-300">
-                    <i data-lucide="log-out" class="w-4 h-4"></i>
-                    Log Out
-                </button>
+                <div class="flex flex-wrap items-center gap-3">
+                    <a href="/Tool.html" class="flex items-center gap-2 px-5 py-2.5 bg-solarglyph/10 text-solarglyph dark:text-blue-400 hover:bg-solarglyph/20 dark:hover:bg-blue-500/10 border border-solarglyph/20 dark:border-blue-400/20 rounded-full font-medium transition-all duration-300">
+                        <i data-lucide="sparkles" class="w-4 h-4"></i>
+                        Open Tool
+                    </a>
+                    <button id="logout-btn" class="flex items-center gap-2 px-5 py-2.5 bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20 border border-red-500/20 rounded-full font-medium transition-all duration-300">
+                        <i data-lucide="log-out" class="w-4 h-4"></i>
+                        Log Out
+                    </button>
+                </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -133,6 +139,39 @@
                 </div>
 
             </div>
+
+            <section class="mt-8">
+                <div class="flex items-center justify-between mb-5">
+                    <h2 class="text-xl font-semibold tracking-tight">Feature Roadmap</h2>
+                    <a href="/Tool.html" class="text-sm font-medium text-solarglyph dark:text-blue-400 hover:opacity-80 transition-opacity">Go to obfuscator</a>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="glass-card rounded-[1.5rem] p-5">
+                        <div class="w-10 h-10 rounded-xl bg-solarglyph/10 dark:bg-blue-500/10 flex items-center justify-center mb-4">
+                            <i data-lucide="history" class="w-5 h-5 text-solarglyph dark:text-blue-400"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold mb-2">Recent Jobs</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">Track the last scripts you obfuscated, compare versions, and quickly regenerate results.</p>
+                    </div>
+
+                    <div class="glass-card rounded-[1.5rem] p-5">
+                        <div class="w-10 h-10 rounded-xl bg-solarglyph/10 dark:bg-blue-500/10 flex items-center justify-center mb-4">
+                            <i data-lucide="chart-column" class="w-5 h-5 text-solarglyph dark:text-blue-400"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold mb-2">Usage Insights</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">Visualize credit usage, script history, and obfuscation trends to better manage your workload.</p>
+                    </div>
+
+                    <div class="glass-card rounded-[1.5rem] p-5">
+                        <div class="w-10 h-10 rounded-xl bg-solarglyph/10 dark:bg-blue-500/10 flex items-center justify-center mb-4">
+                            <i data-lucide="shield-check" class="w-5 h-5 text-solarglyph dark:text-blue-400"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold mb-2">Security Center</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">Surface account health, API activity, verification status, and upgrade controls in one place.</p>
+                    </div>
+                </div>
+            </section>
         </div>
     </main>
 
