@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Obfuscate | Solarglyph Labs</title>
+    <title>Dashboard | Solarglyph Labs</title>
     <link rel="icon" href="https://www.solarglyphlabs.com/images/Logo/SolarglyphLabsLogoCut.png" type="image/png">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,7 +12,9 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <!-- Supabase client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
         tailwind.config = {
@@ -43,441 +45,243 @@
         ::-webkit-scrollbar-thumb { background: rgba(120,130,150,0.2); border-radius: 8px; }
         ::-webkit-scrollbar-thumb:hover { background-color: rgba(120,130,150,0.4); }
         
-        textarea.script-input {
-            tab-size: 4;
-            background: transparent;
-        }
-        textarea.script-input::placeholder { color: #9CA3AF80; }
-        .dark textarea.script-input::placeholder { color: #6B7280; }
-        
         @keyframes spin { to { transform: rotate(360deg); } }
         .spin { animation: spin 0.8s linear infinite; }
-        
-        /* Modal Transitions */
-        .modal-enter { opacity: 0; transform: scale(0.95); }
-        .modal-enter-active { opacity: 1; transform: scale(1); transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
-        .modal-exit { opacity: 1; transform: scale(1); }
-        .modal-exit-active { opacity: 0; transform: scale(0.95); pointer-events: none; transition: all 0.2s ease-in; }
-
-        /* iOS Toggle Switch */
-        .ios-toggle { transition: background-color 0.3s ease; }
-        .ios-knob { transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
     </style>
 </head>
-<body class="text-apple-textLight dark:text-apple-textDark h-screen flex flex-col overflow-hidden transition-colors duration-500 relative">
+<body class="text-apple-textLight dark:text-apple-textDark min-h-screen flex flex-col overflow-x-hidden transition-colors duration-500 relative">
     
     <!-- Original Solarglyph Brand Background -->
     <div class="fixed inset-0 z-[-2] bg-cover bg-center" style="background-image: url('https://www.solarglyphlabs.com/images/Backgrounds/SolarGlyphCampus.png');"></div>
     <div class="fixed inset-0 z-[-1] bg-white/80 dark:bg-black/75 backdrop-blur-[24px] transition-colors duration-500"></div>
 
-    <!-- Glass Navigation -->
-    <nav class="h-14 w-full bg-white/40 dark:bg-black/40 border-b border-gray-300/40 dark:border-white/10 flex items-center justify-between px-6 z-40 shrink-0">
+    <!-- Glass Navigation (Matched to Script 1) -->
+    <nav class="h-14 w-full bg-white/40 dark:bg-black/40 border-b border-gray-300/40 dark:border-white/10 flex items-center justify-between px-6 z-40 shrink-0 sticky top-0 backdrop-blur-md">
         <div class="flex items-center gap-3">
             <img src="https://www.solarglyphlabs.com/images/Logo/SolarglyphLabsLogoCut.png" alt="Logo" class="w-6 h-6">
             <span class="font-semibold tracking-tight text-sm">Solarglyph Labs</span>
+            <span class="text-gray-400 dark:text-gray-500 mx-1">/</span>
+            <span class="text-sm font-medium text-gray-600 dark:text-gray-300">Dashboard</span>
         </div>
-        <div class="flex items-center gap-4 text-xs font-medium">
-            <div class="px-4 py-1.5 rounded-full bg-white/50 dark:bg-black/50 border border-gray-300/40 dark:border-white/10 flex items-center gap-2 shadow-sm">
-                <span class="text-gray-500 dark:text-gray-400">Balance</span>
-                <span id="balance-display" class="font-mono text-solarglyph dark:text-solarglyphLight font-semibold">40 credits</span>
-            </div>
+        <div class="flex items-center gap-3 text-xs font-medium">
+            <a href="/Tool.html" class="px-4 py-1.5 rounded-full bg-solarglyph/10 dark:bg-solarglyphLight/10 border border-solarglyph/20 dark:border-solarglyphLight/20 text-solarglyph dark:text-solarglyphLight flex items-center gap-2 hover:bg-solarglyph/20 transition-colors">
+                <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Open Tool
+            </a>
+            <button id="logout-btn" class="p-1.5 rounded-full bg-white/50 dark:bg-black/50 border border-gray-300/40 dark:border-white/10 text-gray-500 hover:text-red-500 hover:border-red-500/30 transition-colors flex items-center justify-center shadow-sm" title="Log Out">
+                <i data-lucide="log-out" class="w-4 h-4"></i>
+            </button>
         </div>
     </nav>
 
-    <!-- Full-Bleed App Workspace -->
-    <main class="flex-1 flex flex-col lg:flex-row w-full overflow-hidden relative">
+    <main class="flex-1 w-full max-w-5xl mx-auto px-6 py-10 flex flex-col relative z-10">
         
-        <!-- LEFT COLUMN: EDITOR -->
-        <div class="flex-1 flex flex-col border-b lg:border-b-0 lg:border-r border-gray-300/40 dark:border-white/10 relative bg-white/20 dark:bg-black/20">
+        <!-- Loading State -->
+        <div id="loading-state" class="flex flex-col items-center justify-center flex-1 min-h-[50vh] space-y-4">
+            <i data-lucide="loader-2" class="w-10 h-10 text-solarglyph dark:text-solarglyphLight spin"></i>
+            <p class="text-sm tracking-widest uppercase font-mono text-gray-500 dark:text-gray-400 font-medium animate-pulse">Authenticating...</p>
+        </div>
+
+        <!-- Main Content (Hidden by default) -->
+        <div id="dashboard-content" class="hidden w-full space-y-8">
             
             <!-- Header -->
-            <div class="px-6 py-5 shrink-0">
-                <h1 class="text-3xl font-bold tracking-tight mb-1">Obfuscator Engine</h1>
-                <p class="text-gray-600 dark:text-gray-400 text-sm">Secure your Luau scripts before deployment.</p>
+            <div>
+                <h1 class="text-3xl font-bold tracking-tight mb-1">Welcome back</h1>
+                <p class="text-gray-600 dark:text-gray-400 text-sm">Manage your account and view your obfuscation credits.</p>
             </div>
 
-            <!-- Drag and Drop Overlay -->
-            <div id="drop-overlay" class="absolute inset-0 z-20 hidden bg-white/60 dark:bg-black/60 backdrop-blur-md border-2 border-dashed border-solarglyph dark:border-solarglyphLight flex items-center justify-center pointer-events-none transition-all">
-                <div class="flex flex-col items-center gap-3 text-solarglyph dark:text-solarglyphLight">
-                    <i data-lucide="file-down" class="w-12 h-12"></i>
-                    <span class="font-medium tracking-wide text-lg">Drop script here to load</span>
-                </div>
-            </div>
-
-            <!-- Tabs -->
-            <div class="flex items-stretch border-y border-gray-300/40 dark:border-white/10 bg-white/30 dark:bg-white/[0.02] h-12 shrink-0">
-                <div id="tab-strip" class="tab-strip flex items-stretch overflow-x-auto h-full scrollbar-none"></div>
-                <button id="add-tab-btn" class="flex items-center justify-center w-12 text-gray-400 hover:text-solarglyph dark:hover:text-solarglyphLight transition-colors shrink-0 h-full border-l border-gray-300/40 dark:border-white/10">
-                    <i data-lucide="plus" class="w-4 h-4"></i>
-                </button>
-                <div class="flex-1"></div>
-                <button id="import-btn" class="flex items-center gap-2 px-5 text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-apple-textLight dark:hover:text-apple-textDark transition-colors shrink-0 h-full border-l border-gray-300/40 dark:border-white/10" onclick="document.getElementById('file-input').click()">
-                    <i data-lucide="upload" class="w-4 h-4"></i> Import File
-                </button>
-                <input type="file" id="file-input" accept=".lua,.luau,.txt" multiple class="hidden">
-            </div>
-
-            <!-- Text Area -->
-            <div id="drop-zone" class="relative flex-1 group bg-gray-50/30 dark:bg-black/10">
-                <textarea id="script-input" class="script-input absolute inset-0 w-full h-full resize-none outline-none px-6 py-6 font-mono text-[13.5px] leading-relaxed transition-colors"
-                    placeholder="-- Paste a Luau script here&#10;&#10;local function greet(name)&#10;    print('Hello, ' .. name)&#10;end" spellcheck="false"></textarea>
-            </div>
-            
-            <!-- Editor Footer -->
-            <div class="h-9 flex items-center justify-between px-6 bg-white/40 dark:bg-black/30 border-t border-gray-300/40 dark:border-white/10 text-[10px] uppercase tracking-widest font-mono font-medium text-gray-500 shrink-0">
-                <div id="validity-badge" class="flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-gray-400 shadow-sm"></span> Empty
-                </div>
-                <div class="flex items-center gap-6">
-                    <span>UTF-8</span>
-                    <span>Luau</span>
-                    <span id="char-count">0 chars</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- RIGHT COLUMN: SETTINGS -->
-        <aside class="w-full lg:w-[360px] flex flex-col bg-white/30 dark:bg-white/[0.02] shrink-0 h-full z-10">
-            <div class="flex-1 overflow-y-auto p-6 space-y-8">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 
-                <!-- Engine -->
-                <div>
-                    <h3 class="text-[11px] uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2.5 font-semibold">Engine</h3>
-                    <div class="relative">
-                        <select class="w-full appearance-none bg-white/50 dark:bg-black/30 border border-gray-300/50 dark:border-white/10 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-solarglyph dark:focus:ring-solarglyphLight transition-all cursor-pointer">
-                            <option>v1 — Standard Luau</option>
-                        </select>
-                        <i data-lucide="chevron-down" class="w-4 h-4 absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
-                    </div>
-                </div>
-
-                <!-- Power -->
-                <div>
-                    <h3 class="text-[11px] uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2.5 font-semibold">Power Level</h3>
-                    <div class="flex flex-col gap-2" id="power-group">
-                        <button data-power="light" class="power-btn w-full flex items-center justify-between px-4 py-3 rounded-xl border border-gray-300/50 dark:border-white/10 hover:bg-white/40 dark:hover:bg-white/5 text-sm text-left transition-all">
-                            <span class="font-medium">Light</span>
-                            <span class="text-xs font-mono text-gray-500">2 CR</span>
-                        </button>
-                        <button data-power="standard" class="power-btn w-full flex items-center justify-between px-4 py-3 rounded-xl border border-solarglyph dark:border-solarglyphLight bg-solarglyph/10 dark:bg-solarglyphLight/10 shadow-[0_0_10px_rgba(37,99,235,0.1)] text-sm text-left transition-all">
-                            <span class="font-medium text-solarglyph dark:text-solarglyphLight">Standard</span>
-                            <span class="text-xs font-mono text-solarglyph dark:text-solarglyphLight">4 CR</span>
-                        </button>
-                        <button data-power="heavy" class="power-btn w-full flex items-center justify-between px-4 py-3 rounded-xl border border-gray-300/50 dark:border-white/10 hover:bg-white/40 dark:hover:bg-white/5 text-sm text-left transition-all">
-                            <span class="font-medium">Heavy</span>
-                            <span class="text-xs font-mono text-gray-500">7 CR</span>
+                <!-- Credits & Quick Actions (Left Column) -->
+                <div class="lg:col-span-1 flex flex-col">
+                    <div class="flex-1 bg-white/30 dark:bg-white/[0.02] border border-solarglyph dark:border-solarglyphLight rounded-[2rem] p-8 text-center relative overflow-hidden shadow-[0_0_15px_rgba(37,99,235,0.05)] backdrop-blur-sm">
+                        <!-- Decorative gradient blob inside the card -->
+                        <div class="absolute -top-12 -right-12 w-32 h-32 bg-solarglyph/20 dark:bg-solarglyphLight/20 rounded-full blur-3xl pointer-events-none"></div>
+                        
+                        <div class="w-12 h-12 mx-auto bg-solarglyph/10 dark:bg-solarglyphLight/10 text-solarglyph dark:text-solarglyphLight rounded-xl border border-solarglyph/20 flex items-center justify-center mb-6">
+                            <i data-lucide="zap" class="w-6 h-6"></i>
+                        </div>
+                        <h2 class="text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">Credit Balance</h2>
+                        <div class="text-5xl font-mono font-bold text-gray-900 dark:text-white mb-2 tracking-tight" id="val-credits">
+                            <span class="text-xl text-gray-400 font-normal">...</span>
+                        </div>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-8">Available for script obfuscation</p>
+                        
+                        <button class="w-full py-3.5 bg-solarglyph dark:bg-blue-600 text-white rounded-xl font-medium hover:shadow-[0_4px_14px_rgba(37,99,235,0.3)] hover:-translate-y-0.5 transition-all text-sm flex items-center justify-center gap-2">
+                            Purchase Credits <i data-lucide="arrow-right" class="w-4 h-4"></i>
                         </button>
                     </div>
                 </div>
 
-                <!-- Glass iOS Style Toggles -->
-                <div>
-                    <h3 class="text-[11px] uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2.5 font-semibold">Toggles</h3>
-                    <div class="bg-white/40 dark:bg-black/20 border border-gray-300/50 dark:border-white/10 rounded-xl overflow-hidden backdrop-blur-sm">
-                        <label class="flex items-center justify-between px-4 py-3 border-b border-gray-300/30 dark:border-white/5 cursor-pointer group hover:bg-white/20 dark:hover:bg-white/5 transition-colors">
-                            <span class="text-sm font-medium group-hover:text-solarglyph dark:group-hover:text-solarglyphLight transition-colors">String Encryption</span>
-                            <button type="button" class="ios-toggle relative w-12 h-7 rounded-full bg-solarglyph dark:bg-solarglyphLight transition-colors focus:outline-none" data-toggle="strings">
-                                <span class="ios-knob absolute top-[2px] left-[2px] w-6 h-6 rounded-full bg-white shadow-sm transform translate-x-5"></span>
-                            </button>
-                        </label>
-                        <label class="flex items-center justify-between px-4 py-3 border-b border-gray-300/30 dark:border-white/5 cursor-pointer group hover:bg-white/20 dark:hover:bg-white/5 transition-colors">
-                            <span class="text-sm font-medium group-hover:text-solarglyph dark:group-hover:text-solarglyphLight transition-colors">Control Flow</span>
-                            <button type="button" class="ios-toggle relative w-12 h-7 rounded-full bg-solarglyph dark:bg-solarglyphLight transition-colors focus:outline-none" data-toggle="controlflow">
-                                <span class="ios-knob absolute top-[2px] left-[2px] w-6 h-6 rounded-full bg-white shadow-sm transform translate-x-5"></span>
-                            </button>
-                        </label>
-                        <label class="flex items-center justify-between px-4 py-3 cursor-pointer group hover:bg-white/20 dark:hover:bg-white/5 transition-colors">
-                            <span class="text-sm font-medium group-hover:text-solarglyph dark:group-hover:text-solarglyphLight transition-colors">Minify Output</span>
-                            <button type="button" class="ios-toggle relative w-12 h-7 rounded-full bg-solarglyph dark:bg-solarglyphLight transition-colors focus:outline-none" data-toggle="minify">
-                                <span class="ios-knob absolute top-[2px] left-[2px] w-6 h-6 rounded-full bg-white shadow-sm transform translate-x-5"></span>
-                            </button>
-                        </label>
+                <!-- Account Details (Right Column) -->
+                <div class="lg:col-span-2 bg-white/30 dark:bg-white/[0.02] border border-gray-300/40 dark:border-white/10 rounded-[2rem] p-8 backdrop-blur-sm">
+                    <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-300/30 dark:border-white/5">
+                        <div class="w-8 h-8 rounded-full bg-gray-200/50 dark:bg-white/10 flex items-center justify-center text-gray-600 dark:text-gray-300">
+                            <i data-lucide="user" class="w-4 h-4"></i>
+                        </div>
+                        <h2 class="text-lg font-semibold tracking-tight">Account Details</h2>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-8">
+                        
+                        <!-- Detail Item -->
+                        <div class="group">
+                            <h3 class="text-[11px] uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5 font-semibold flex items-center gap-1.5">
+                                <i data-lucide="mail" class="w-3.5 h-3.5"></i> Email Address
+                            </h3>
+                            <p class="font-medium text-sm text-gray-900 dark:text-gray-100 truncate" id="val-email">...</p>
+                        </div>
+                        
+                        <!-- Detail Item -->
+                        <div class="group">
+                            <h3 class="text-[11px] uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5 font-semibold flex items-center gap-1.5">
+                                <i data-lucide="shield-check" class="w-3.5 h-3.5"></i> Status
+                            </h3>
+                            <p class="font-medium text-sm" id="val-confirmed">...</p>
+                        </div>
+
+                        <!-- Detail Item -->
+                        <div class="group">
+                            <h3 class="text-[11px] uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5 font-semibold flex items-center gap-1.5">
+                                <i data-lucide="key" class="w-3.5 h-3.5"></i> Auth Provider
+                            </h3>
+                            <div class="inline-flex items-center px-2.5 py-1 rounded-md bg-white/50 dark:bg-black/30 border border-gray-300/50 dark:border-white/10 text-xs font-mono font-medium capitalize" id="val-provider">...</div>
+                        </div>
+
+                        <!-- Detail Item -->
+                        <div class="group">
+                            <h3 class="text-[11px] uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5 font-semibold flex items-center gap-1.5">
+                                <i data-lucide="clock" class="w-3.5 h-3.5"></i> Last Sign-in
+                            </h3>
+                            <p class="font-medium text-sm text-gray-900 dark:text-gray-100" id="val-last-signin">...</p>
+                        </div>
+
+                        <!-- Detail Item -->
+                        <div class="group">
+                            <h3 class="text-[11px] uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5 font-semibold flex items-center gap-1.5">
+                                <i data-lucide="calendar" class="w-3.5 h-3.5"></i> Member Since
+                            </h3>
+                            <p class="font-medium text-sm text-gray-900 dark:text-gray-100" id="val-created">...</p>
+                        </div>
+
+                        <!-- Detail Item -->
+                        <div class="group">
+                            <h3 class="text-[11px] uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5 font-semibold flex items-center gap-1.5">
+                                <i data-lucide="hash" class="w-3.5 h-3.5"></i> Developer ID
+                            </h3>
+                            <p class="font-mono text-xs text-gray-600 dark:text-gray-400 break-all" id="val-id">...</p>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Fixed Action Footer -->
-            <div class="p-6 border-t border-gray-300/40 dark:border-white/10 bg-white/40 dark:bg-black/30 shrink-0 backdrop-blur-md">
-                <div class="flex justify-between items-center mb-4">
-                    <span class="text-sm text-gray-500 dark:text-gray-400">Total Cost</span>
-                    <span id="total-cost" class="text-xl font-semibold font-mono tracking-tight text-apple-textLight dark:text-white">0 CR</span>
+            <!-- Feature Roadmap Section -->
+            <section class="pt-4 border-t border-gray-300/40 dark:border-white/10">
+                <div class="flex items-center justify-between mb-5 px-1">
+                    <h2 class="text-sm uppercase tracking-wider text-gray-500 dark:text-gray-400 font-semibold">Workspace Features</h2>
                 </div>
-                <button id="open-modal-btn" disabled class="w-full bg-solarglyph dark:bg-blue-600 disabled:bg-gray-300/50 dark:disabled:bg-white/10 disabled:text-gray-500 text-white py-3.5 rounded-xl font-medium hover:not-disabled:shadow-[0_4px_14px_rgba(37,99,235,0.3)] hover:not-disabled:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2">
-                    Review & Process <i data-lucide="arrow-right" class="w-4 h-4"></i>
-                </button>
-            </div>
-        </aside>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Feature Card 1 -->
+                    <div class="bg-white/20 dark:bg-black/20 border border-gray-300/40 dark:border-white/10 rounded-2xl p-5 hover:bg-white/40 dark:hover:bg-white/[0.04] transition-colors cursor-pointer group">
+                        <div class="w-9 h-9 rounded-xl bg-white/50 dark:bg-black/50 border border-gray-300/30 dark:border-white/5 flex items-center justify-center mb-4 group-hover:scale-105 group-hover:text-solarglyph dark:group-hover:text-solarglyphLight transition-all">
+                            <i data-lucide="history" class="w-4 h-4"></i>
+                        </div>
+                        <h3 class="text-sm font-semibold mb-1.5 group-hover:text-solarglyph dark:group-hover:text-solarglyphLight transition-colors">Recent Jobs</h3>
+                        <p class="text-[13px] leading-relaxed text-gray-600 dark:text-gray-400">Track the last scripts you obfuscated, compare versions, and quickly regenerate results.</p>
+                    </div>
+
+                    <!-- Feature Card 2 -->
+                    <div class="bg-white/20 dark:bg-black/20 border border-gray-300/40 dark:border-white/10 rounded-2xl p-5 hover:bg-white/40 dark:hover:bg-white/[0.04] transition-colors cursor-pointer group">
+                        <div class="w-9 h-9 rounded-xl bg-white/50 dark:bg-black/50 border border-gray-300/30 dark:border-white/5 flex items-center justify-center mb-4 group-hover:scale-105 group-hover:text-solarglyph dark:group-hover:text-solarglyphLight transition-all">
+                            <i data-lucide="chart-column" class="w-4 h-4"></i>
+                        </div>
+                        <h3 class="text-sm font-semibold mb-1.5 group-hover:text-solarglyph dark:group-hover:text-solarglyphLight transition-colors">Usage Insights</h3>
+                        <p class="text-[13px] leading-relaxed text-gray-600 dark:text-gray-400">Visualize credit usage, script history, and obfuscation trends to better manage your workload.</p>
+                    </div>
+
+                    <!-- Feature Card 3 -->
+                    <div class="bg-white/20 dark:bg-black/20 border border-gray-300/40 dark:border-white/10 rounded-2xl p-5 hover:bg-white/40 dark:hover:bg-white/[0.04] transition-colors cursor-pointer group">
+                        <div class="w-9 h-9 rounded-xl bg-white/50 dark:bg-black/50 border border-gray-300/30 dark:border-white/5 flex items-center justify-center mb-4 group-hover:scale-105 group-hover:text-solarglyph dark:group-hover:text-solarglyphLight transition-all">
+                            <i data-lucide="shield-check" class="w-4 h-4"></i>
+                        </div>
+                        <h3 class="text-sm font-semibold mb-1.5 group-hover:text-solarglyph dark:group-hover:text-solarglyphLight transition-colors">Security Center</h3>
+                        <p class="text-[13px] leading-relaxed text-gray-600 dark:text-gray-400">Surface account health, API activity, verification status, and upgrade controls in one place.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
     </main>
 
-    <!-- Glass Modal -->
-    <div id="receipt-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center">
-        <div class="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-md transition-opacity" id="close-modal-bg"></div>
-        <div class="relative w-full max-w-md mx-4 bg-white/80 dark:bg-black/70 backdrop-blur-2xl border border-gray-300/50 dark:border-white/10 rounded-[2rem] shadow-2xl overflow-hidden transition-all transform scale-95 opacity-0" id="modal-content">
-            
-            <div class="p-6 border-b border-gray-300/30 dark:border-white/10 flex items-center justify-between">
-                <h3 class="text-xl font-bold tracking-tight">Confirm Request</h3>
-                <button id="close-modal-btn" class="text-gray-400 hover:text-gray-700 dark:hover:text-white transition-colors">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
-            </div>
-
-            <div id="modal-receipt-body">
-                <div class="p-6 pb-4">
-                    <div id="modal-recipe-list" class="space-y-1 mb-6 max-h-48 overflow-y-auto"></div>
-                    
-                    <div class="bg-gray-100/50 dark:bg-white/5 rounded-xl p-4 border border-gray-300/30 dark:border-white/5">
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="text-sm text-gray-500 dark:text-gray-400">Total Cost</span>
-                            <span id="modal-total-cost" class="font-mono font-semibold">0 CR</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-sm text-gray-500 dark:text-gray-400">Remaining Balance</span>
-                            <span id="modal-balance-after" class="font-mono text-sm text-solarglyph dark:text-solarglyphLight"></span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="flex p-6 pt-2 gap-3 border-t border-gray-300/30 dark:border-white/10 mt-2">
-                    <button id="cancel-modal-btn" class="flex-1 py-3 rounded-xl border border-gray-300/50 dark:border-white/10 font-medium text-gray-600 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-white/10 transition-colors">Cancel</button>
-                    <button id="confirm-obfuscate-btn" class="flex-1 py-3 rounded-xl bg-solarglyph dark:bg-blue-600 text-white font-medium hover:shadow-lg transition-all flex items-center justify-center gap-2">
-                        <i data-lucide="check" class="w-4 h-4"></i> Confirm & Pay
-                    </button>
-                </div>
-            </div>
-
-            <div class="p-10 hidden flex-col items-center justify-center text-center space-y-4 min-h-[300px]" id="modal-waiting-body">
-                <i data-lucide="loader-2" class="w-12 h-12 text-solarglyph dark:text-solarglyphLight spin mx-auto"></i>
-                <h3 class="text-lg font-semibold">Obfuscating Scripts...</h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400">Please do not close this window.</p>
-            </div>
-        </div>
-    </div>
-
     <script>
+        // Initialize icons
         lucide.createIcons();
 
-        let scripts = [];
-        let activeId = null;
-        let settings = { power: 'standard', strings: true, controlflow: true, minify: true };
-        let currentTotalCost = 0;
-        const MOCK_BALANCE = 40;
+        // Supabase Initialization
+        const SUPABASE_URL = 'https://xuhohaetbviveewgeiub.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_V_h9hhxlQ_xH4WaNZrh9Wg_7Tt0nDbb';
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        const el = (id) => document.getElementById(id);
-        function uid() { return Math.random().toString(36).slice(2, 9); }
-
-        function newScript(name, content = '') {
-            const s = { id: uid(), name, content, valid: content.trim().length > 0 };
-            scripts.push(s);
-            activeId = s.id;
-            return s;
-        }
-
-        newScript('main.lua');
-
-        function checkValidity(code) {
-            if (!code.trim()) return { valid: false, reason: 'empty' };
-            return { valid: true };
-        }
-
-        function estimateCost(script) {
-            if (!script.valid) return 0;
-            const base = { light: 2, standard: 4, heavy: 7 }[settings.power];
-            const sizeFactor = Math.ceil(script.content.length / 800);
-            let cost = base + sizeFactor;
-            if (settings.strings) cost += 1;
-            if (settings.controlflow) cost += 2;
-            return cost;
-        }
-
-        function renderTabs() {
-            const strip = el('tab-strip');
-            strip.innerHTML = '';
-            scripts.forEach(s => {
-                const tab = document.createElement('button');
-                const isActive = s.id === activeId;
-                tab.className = `group flex items-center gap-2 px-5 py-3 text-[13px] border-r border-gray-300/40 dark:border-white/10 shrink-0 transition-colors font-mono ${
-                    isActive ? 'bg-white/60 dark:bg-white/[0.08] text-apple-textLight dark:text-white shadow-[inset_0_-2px_0_0_var(--tw-color-solarglyph)] dark:shadow-[inset_0_-2px_0_0_#3b82f6]' : 'text-gray-500 dark:text-gray-400 hover:bg-white/20 dark:hover:bg-white/[0.02] hover:text-gray-800 dark:hover:text-gray-200'
-                }`;
-                tab.innerHTML = `
-                    <span class="w-2 h-2 rounded-full ${s.valid ? 'bg-green-500 shadow-[0_0_5px_rgba(34,197,94,0.4)]' : (s.content ? 'bg-red-500' : 'bg-gray-400')}"></span>
-                    <span>${s.name}</span>
-                    ${scripts.length > 1 ? `<i data-lucide="x" class="w-3.5 h-3.5 ml-2 opacity-0 group-hover:opacity-100 hover:!text-red-500 transition-opacity"></i>` : ''}
-                `;
-                tab.addEventListener('click', (e) => {
-                    if (e.target.closest('[data-lucide="x"]')) {
-                        scripts = scripts.filter(x => x.id !== s.id);
-                        if (activeId === s.id) activeId = scripts[0]?.id;
-                        renderAll();
-                        return;
-                    }
-                    activeId = s.id;
-                    renderAll();
-                });
-                strip.appendChild(tab);
-            });
-            lucide.createIcons();
-        }
-
-        function updateMainButtonState() {
-            let total = 0;
-            scripts.forEach(s => total += estimateCost(s));
-            currentTotalCost = total;
-            el('total-cost').textContent = `${total} CR`;
+        async function loadDashboard() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
             
-            const btn = el('open-modal-btn');
-            const anyValid = scripts.some(s => s.valid);
-            btn.disabled = !anyValid || total > MOCK_BALANCE;
-        }
-
-        function renderEditor() {
-            const active = scripts.find(s => s.id === activeId);
-            const input = el('script-input');
-            input.value = active ? active.content : '';
-            input.disabled = !active;
-
-            const badge = el('validity-badge');
-            const count = el('char-count');
-            if (!active || !active.content) {
-                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-gray-400 shadow-sm shadow-gray-400/50"></span> Empty';
-                count.textContent = '0 chars';
-            } else if (active.valid) {
-                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span> Ready';
-                count.textContent = `${active.content.length} chars`;
+            // Redirect to signup if not logged in
+            if (!session) {
+                window.location.href = '/Signup.html';
+                return;
             }
-        }
 
-        function renderAll() {
-            scripts.forEach(s => {
-                s.valid = checkValidity(s.content).valid;
-            });
-            renderTabs();
-            renderEditor();
-            updateMainButtonState();
-        }
+            const user = session.user;
 
-        // Editor Input
-        el('script-input').addEventListener('input', (e) => {
-            const active = scripts.find(s => s.id === activeId);
-            if (!active) return;
-            active.content = e.target.value;
-            active.valid = checkValidity(active.content).valid;
-            renderAll();
-        });
-
-        el('add-tab-btn').addEventListener('click', () => { newScript(`script${scripts.length + 1}.lua`); renderAll(); });
-        
-        // Drag and Drop
-        const dropZone = el('drop-zone');
-        const dropOverlay = el('drop-overlay');
-        ['dragover', 'dragenter'].forEach(evt => dropZone.addEventListener(evt, (e) => { e.preventDefault(); dropOverlay.classList.remove('hidden'); }));
-        ['dragleave', 'drop'].forEach(evt => dropZone.addEventListener(evt, (e) => { e.preventDefault(); dropOverlay.classList.add('hidden'); }));
-        dropZone.addEventListener('drop', async (e) => {
-            const files = Array.from(e.dataTransfer.files || []);
-            for (const file of files) { const text = await file.text(); newScript(file.name, text); }
-            if (files.length) renderAll();
-        });
-
-        // Config UI (Power Level)
-        document.querySelectorAll('.power-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                settings.power = btn.dataset.power;
-                document.querySelectorAll('.power-btn').forEach(b => {
-                    b.className = 'power-btn w-full flex items-center justify-between px-4 py-3 rounded-xl border border-gray-300/50 dark:border-white/10 hover:bg-white/40 dark:hover:bg-white/5 text-sm text-left transition-all';
-                    b.querySelector('span:first-child').className = 'font-medium';
-                    b.querySelector('span:last-child').className = 'text-xs font-mono text-gray-500';
-                });
-                btn.className = 'power-btn w-full flex items-center justify-between px-4 py-3 rounded-xl border border-solarglyph dark:border-solarglyphLight bg-solarglyph/10 dark:bg-solarglyphLight/10 shadow-[0_0_10px_rgba(37,99,235,0.1)] text-sm text-left transition-all';
-                btn.querySelector('span:first-child').className = 'font-medium text-solarglyph dark:text-solarglyphLight';
-                btn.querySelector('span:last-child').className = 'text-xs font-mono text-solarglyph dark:text-solarglyphLight';
-                updateMainButtonState();
-            });
-        });
-
-        // Config UI (iOS Toggles adapted for Glass theme)
-        document.querySelectorAll('.ios-toggle').forEach(sw => {
-            sw.addEventListener('click', () => {
-                const key = sw.dataset.toggle;
-                settings[key] = !settings[key];
-                
-                if (settings[key]) {
-                    sw.classList.add('bg-solarglyph', 'dark:bg-solarglyphLight');
-                    sw.classList.remove('bg-gray-300', 'dark:bg-white/20');
-                    sw.querySelector('.ios-knob').classList.add('translate-x-5');
-                    sw.querySelector('.ios-knob').classList.remove('translate-x-0');
-                } else {
-                    sw.classList.remove('bg-solarglyph', 'dark:bg-solarglyphLight');
-                    sw.classList.add('bg-gray-300', 'dark:bg-white/20');
-                    sw.querySelector('.ios-knob').classList.remove('translate-x-5');
-                    sw.querySelector('.ios-knob').classList.add('translate-x-0');
-                }
-                updateMainButtonState();
-            });
-        });
-
-        // Modal Logic
-        const modal = el('receipt-modal');
-        const modalContent = el('modal-content');
-
-        el('open-modal-btn').addEventListener('click', () => {
-            const list = el('modal-recipe-list');
-            list.innerHTML = scripts.filter(s => s.valid).map(s => `
-                <div class="flex items-center justify-between py-2.5 border-b border-gray-300/20 dark:border-white/5 last:border-0">
-                    <span class="text-sm font-mono flex items-center gap-2"><i data-lucide="file-code-2" class="w-4 h-4 text-solarglyph dark:text-solarglyphLight"></i> ${s.name}</span>
-                    <span class="text-xs font-mono font-medium text-gray-500">${estimateCost(s)} CR</span>
-                </div>
-            `).join('');
-
-            el('modal-total-cost').textContent = `${currentTotalCost} CR`;
-            el('modal-balance-after').textContent = `${MOCK_BALANCE - currentTotalCost} CR`;
-
-            el('modal-receipt-body').classList.remove('hidden');
-            el('modal-waiting-body').classList.add('hidden');
+            // Populate the data
+            document.getElementById('val-email').textContent = user.email || '(none — OAuth)';
+            document.getElementById('val-id').textContent = user.id;
+            document.getElementById('val-created').textContent = new Date(user.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+            document.getElementById('val-last-signin').textContent = user.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : '—';
+            document.getElementById('val-provider').textContent = user.app_metadata?.provider || 'email';
             
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                modalContent.classList.remove('scale-95', 'opacity-0');
-                modalContent.classList.add('scale-100', 'opacity-100');
-            }, 10);
+            // Format email confirmation nicely
+            const confirmedEl = document.getElementById('val-confirmed');
+            if (user.email_confirmed_at) {
+                confirmedEl.innerHTML = '<span class="flex items-center gap-1.5 text-green-600 dark:text-green-400"><i data-lucide="check-circle-2" class="w-4 h-4"></i> Verified</span>';
+            } else {
+                confirmedEl.innerHTML = '<span class="flex items-center gap-1.5 text-yellow-600 dark:text-yellow-400"><i data-lucide="alert-circle" class="w-4 h-4"></i> Unverified</span>';
+            }
+
+            // Fetch Credits
+            const { data: profile, error: profileError } = await supabaseClient
+                .from('profiles')
+                .select('credits_balance')
+                .eq('id', user.id)
+                .single();
+
+            document.getElementById('val-credits').textContent = profileError ? '0' : profile.credits_balance;
+
+            // Re-initialize icons for dynamic content
             lucide.createIcons();
-        });
 
-        const closeModal = () => {
-            modalContent.classList.remove('scale-100', 'opacity-100');
-            modalContent.classList.add('scale-95', 'opacity-0');
-            setTimeout(() => { modal.classList.add('hidden'); }, 300);
-        };
-        el('cancel-modal-btn').addEventListener('click', closeModal);
-        el('close-modal-btn').addEventListener('click', closeModal);
-        el('close-modal-bg').addEventListener('click', closeModal);
+            // Transitions: Hide loading state, show content
+            setTimeout(() => {
+                document.getElementById('loading-state').classList.add('hidden');
+                const content = document.getElementById('dashboard-content');
+                content.classList.remove('hidden');
+                // Optional: add a tiny fade-in effect via utility classes if desired
+                content.classList.add('animate-fade-in'); 
+            }, 500); // Small artificial delay to let the loading spinner show gracefully
+        }
 
-        el('confirm-obfuscate-btn').addEventListener('click', async () => {
-            el('modal-receipt-body').classList.add('hidden');
-            el('modal-waiting-body').classList.remove('hidden');
-            el('modal-waiting-body').classList.add('flex');
+        // Handle Logout
+        document.getElementById('logout-btn').addEventListener('click', async () => {
+            const btn = document.getElementById('logout-btn');
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 spin text-gray-400"></i>';
+            btn.disabled = true;
             
-            await new Promise(r => setTimeout(r, 1200));
-
-            confetti({
-                particleCount: 150,
-                spread: 80,
-                origin: { y: 0.4 },
-                colors: ['#2563eb', '#3b82f6', '#60a5fa', '#ffffff'],
-                zIndex: 9999
-            });
-
-            // Redirect simulation
-            setTimeout(() => { closeModal(); alert('Processing Complete! Redirect to results...'); }, 1800);
+            await supabaseClient.auth.signOut();
+            window.location.href = '/Login.html';
         });
 
-        // Handle File Input processing
-        el('file-input').addEventListener('change', async (e) => {
-            const files = Array.from(e.target.files || []);
-            for (const file of files) { const text = await file.text(); newScript(file.name, text); }
-            if (files.length) renderAll();
-            e.target.value = ''; // reset
-        });
-
-        renderAll();
+        // Initialize
+        loadDashboard();
     </script>
 </body>
 </html>
