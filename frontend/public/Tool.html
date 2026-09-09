@@ -17,7 +17,6 @@
     <link rel="stylesheet" href="/shared/styles.css">
     <script src="/shared/components.js" defer></script>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/jszip@3.10.1/dist/jszip.min.js"></script>
 
     <style>
@@ -29,6 +28,9 @@
         textarea.script-input::-webkit-scrollbar-track { background: transparent; }
         textarea.script-input::-webkit-scrollbar-thumb { background: rgba(120,130,150,0.2); border-radius: 4px; }
         textarea.script-input::-webkit-scrollbar-thumb:hover { background: rgba(120,130,150,0.4); }
+        
+        .history-scroll::-webkit-scrollbar { width: 6px; }
+        .history-scroll::-webkit-scrollbar-thumb { background: rgba(120,130,150,0.2); border-radius: 4px; }
         
         textarea.script-input {
             font-family: var(--mono);
@@ -50,15 +52,24 @@
         
         .toggle-knob { transition: transform 0.15s cubic-bezier(0.16,1,0.3,1); }
         
-        /* Pulse animation for dropzone */
         @keyframes subtlePulse {
             0%, 100% { opacity: 1; transform: scale(1); }
             50% { opacity: 0.8; transform: scale(0.98); }
         }
         .drop-icon-animate { animation: subtlePulse 2s infinite ease-in-out; }
+
+        /* Modal Transitions */
+        .modal-enter { opacity: 0; }
+        .modal-enter-active { opacity: 1; transition: opacity 0.3s ease-out; }
+        .modal-exit { opacity: 1; }
+        .modal-exit-active { opacity: 0; pointer-events: none; transition: opacity 0.3s ease-out; }
+        
+        /* Sidebar Transitions */
+        .sidebar-open { transform: translateX(0); }
+        .sidebar-closed { transform: translateX(100%); }
     </style>
 </head>
-<body class="text-apple-textLight dark:text-apple-textDark transition-colors duration-500 overflow-x-hidden">
+<body class="text-apple-textLight dark:text-apple-textDark transition-colors duration-500 overflow-x-hidden relative">
     <div class="fixed inset-0 z-[-2] bg-cover bg-center" style="background-image: url('https://www.solarglyphlabs.com/images/Backgrounds/SolarGlyphCampus.png');"></div>
     <div class="fixed inset-0 z-[-1] bg-white/80 dark:bg-black/75 backdrop-blur-[24px] transition-colors duration-500"></div>
 
@@ -72,9 +83,14 @@
                 <h1 class="text-3xl font-bold tracking-tight mb-1">Obfuscate</h1>
                 <p class="text-gray-600 dark:text-gray-400 text-sm">Paste, import, or drag in Luau scripts to run them through the obfuscator.</p>
             </div>
-            <div class="glass-card rounded-full px-5 py-2.5 text-sm flex items-center gap-2 border border-gray-300/40 dark:border-white/10 shadow-sm">
-                <span class="text-gray-500 dark:text-gray-400">Balance</span>
-                <span id="balance-display" class="mono font-semibold text-solarglyph dark:text-blue-400">40 credits</span>
+            <div class="flex items-center gap-3">
+                <div class="glass-card rounded-full px-5 py-2.5 text-sm flex items-center gap-2 border border-gray-300/40 dark:border-white/10 shadow-sm">
+                    <span class="text-gray-500 dark:text-gray-400">Balance</span>
+                    <span id="balance-display" class="mono font-semibold text-solarglyph dark:text-blue-400">40 credits</span>
+                </div>
+                <button id="toggle-history-btn" class="glass-card rounded-full p-2.5 flex items-center justify-center border border-gray-300/40 dark:border-white/10 hover:bg-white/40 dark:hover:bg-white/10 transition-colors shadow-sm text-gray-500 dark:text-gray-400 hover:text-apple-textLight dark:hover:text-white" title="View History">
+                    <i data-lucide="history" class="w-5 h-5"></i>
+                </button>
             </div>
         </div>
 
@@ -98,8 +114,6 @@
 
                 <!-- Editor Workspace -->
                 <div id="drop-zone" class="relative flex-1 flex flex-col bg-gray-50/50 dark:bg-black/20 group">
-                    
-                    <!-- Drag and Drop Overlay -->
                     <div id="drop-overlay" class="absolute inset-0 z-20 hidden bg-white/60 dark:bg-black/60 backdrop-blur-md border-2 border-dashed border-solarglyph dark:border-blue-500 flex items-center justify-center pointer-events-none transition-all">
                         <div class="flex flex-col items-center gap-3 text-solarglyph dark:text-blue-400 drop-icon-animate">
                             <i data-lucide="file-down" class="w-10 h-10"></i>
@@ -133,7 +147,6 @@
                     <select id="engine-select" class="w-full bg-white/50 dark:bg-black/30 border border-gray-300/50 dark:border-white/10 rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-solarglyph dark:focus:ring-blue-400 transition-all cursor-pointer">
                         <option value="v1">Engine v1 — Standard Luau</option>
                     </select>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-2.5 leading-relaxed">Identifier renaming, string encryption, and control-flow obfuscation for standard Luau scripts.</p>
                 </div>
 
                 <div>
@@ -169,61 +182,119 @@
                         </span>
                     </label>
                 </div>
-
-            </div>
-        </div>
-
-        <!-- Recipe / cost -->
-        <div class="glass-card rounded-[2rem] p-6 mt-6 reveal active border border-gray-300/40 dark:border-white/10 shadow-lg" style="transition-delay: 100ms;">
-            <div id="recipe-list" class="space-y-1.5 mb-4 max-h-40 overflow-y-auto"></div>
-            <div class="flex items-center justify-between border-t border-gray-300/40 dark:border-white/10 pt-5">
-                <div class="text-sm">
-                    <span class="text-gray-500 dark:text-gray-400">Total</span>
-                    <span id="total-cost" class="mono font-semibold ml-2 text-apple-textLight dark:text-white">0 credits</span>
-                    <span class="text-gray-400 mx-2">·</span>
-                    <span id="balance-after" class="text-gray-500 dark:text-gray-400 text-xs"></span>
-                </div>
-                <button id="submit-btn" disabled
-                    class="flex items-center gap-2 bg-solarglyph dark:bg-blue-600 disabled:bg-gray-300/50 dark:disabled:bg-white/10 disabled:text-gray-500 text-white font-medium px-7 py-3 rounded-xl hover:not-disabled:shadow-[0_4px_14px_rgba(37,99,235,0.3)] hover:not-disabled:-translate-y-0.5 transition-all duration-300 disabled:cursor-not-allowed">
-                    <i data-lucide="loader-2" class="w-4 h-4 spin hidden" id="submit-spinner"></i>
-                    <span id="submit-label">Obfuscate Scripts</span>
+                
+                <!-- Main Submit Button to open Modal -->
+                <button id="open-modal-btn" disabled class="w-full flex items-center justify-center gap-2 bg-solarglyph dark:bg-blue-600 disabled:bg-gray-300/50 dark:disabled:bg-white/10 disabled:text-gray-500 text-white font-medium px-7 py-3.5 rounded-xl hover:not-disabled:shadow-[0_4px_14px_rgba(37,99,235,0.3)] hover:not-disabled:-translate-y-0.5 transition-all duration-300 disabled:cursor-not-allowed mt-4">
+                    <span>Review & Obfuscate</span>
                     <i data-lucide="arrow-right" class="w-4 h-4 ml-1"></i>
                 </button>
+
             </div>
         </div>
 
-        <!-- Output -->
+        <!-- Output Area -->
         <div id="output-panel" class="hidden glass-card rounded-[2rem] p-6 mt-6 reveal active border border-solarglyph/30 dark:border-blue-500/30 shadow-[0_0_20px_rgba(37,99,235,0.05)]">
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="text-sm font-semibold flex items-center gap-2">
-                    <i data-lucide="check-circle-2" class="w-4 h-4 text-green-500 dark:text-green-400"></i> Success: Output Generated
+            <div class="flex items-center justify-between mb-4 pb-4 border-b border-gray-300/20 dark:border-white/10">
+                <h2 class="text-lg font-semibold flex items-center gap-2">
+                    <i data-lucide="check-circle-2" class="w-5 h-5 text-green-500 dark:text-green-400"></i> Success: Output Generated
                 </h2>
                 <div class="flex items-center gap-2">
-                    <button id="copy-output-btn" class="flex items-center gap-1.5 text-xs font-medium text-gray-600 dark:text-gray-300 hover:text-apple-textLight dark:hover:text-white px-3 py-1.5 rounded-lg border border-gray-300/50 dark:border-white/10 bg-white/30 dark:bg-white/5 hover:bg-white/60 dark:hover:bg-white/10 transition-all duration-200">
-                        <i data-lucide="copy" class="w-3.5 h-3.5"></i> <span>Copy Output</span>
+                    <button id="copy-all-btn" class="flex items-center gap-1.5 text-xs font-medium text-gray-600 dark:text-gray-300 hover:text-apple-textLight dark:hover:text-white px-3 py-1.5 rounded-lg border border-gray-300/50 dark:border-white/10 bg-white/30 dark:bg-white/5 hover:bg-white/60 dark:hover:bg-white/10 transition-all duration-200">
+                        <i data-lucide="copy" class="w-3.5 h-3.5"></i> <span>Copy All</span>
                     </button>
                     <button id="export-output-btn" class="flex items-center gap-1.5 text-xs font-medium text-gray-600 dark:text-gray-300 hover:text-apple-textLight dark:hover:text-white px-3 py-1.5 rounded-lg border border-gray-300/50 dark:border-white/10 bg-white/30 dark:bg-white/5 hover:bg-white/60 dark:hover:bg-white/10 transition-all duration-200">
-                        <i data-lucide="download" class="w-3.5 h-3.5"></i> <span>Export Files</span>
+                        <i data-lucide="download" class="w-3.5 h-3.5"></i> <span>Export ZIP</span>
                     </button>
                 </div>
             </div>
-            <div id="output-files" class="space-y-4"></div>
+            <div id="output-files" class="space-y-6"></div>
         </div>
 
     </main>
+
+    <!-- Receipt Confirmation Modal -->
+    <div id="receipt-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center modal-exit">
+        <!-- Blurred Backdrop -->
+        <div class="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-md" id="close-modal-bg"></div>
+        
+        <!-- Modal Content -->
+        <div class="relative w-full max-w-md mx-4 glass-card rounded-[2rem] border border-gray-300/50 dark:border-white/10 shadow-2xl overflow-hidden transform transition-transform duration-300 scale-95" id="modal-content">
+            
+            <!-- Modal Header -->
+            <div class="p-6 pb-4 border-b border-gray-300/30 dark:border-white/10 flex items-center justify-between">
+                <h3 class="text-xl font-bold">Confirm Request</h3>
+                <button id="close-modal-btn" class="text-gray-400 hover:text-gray-700 dark:hover:text-white transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body (Receipt) -->
+            <div class="p-6 bg-white/20 dark:bg-black/20" id="modal-receipt-body">
+                <div id="modal-recipe-list" class="space-y-2 mb-6 max-h-48 overflow-y-auto history-scroll"></div>
+                
+                <div class="bg-gray-100/50 dark:bg-white/5 rounded-xl p-4 border border-gray-300/30 dark:border-white/5">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm text-gray-500 dark:text-gray-400">Total Cost</span>
+                        <span id="modal-total-cost" class="mono font-semibold">0 CR</span>
+                    </div>
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="text-gray-500 dark:text-gray-400">Remaining Balance</span>
+                        <span id="modal-balance-after" class="mono text-solarglyph dark:text-blue-400"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Waiting Screen (Hidden by default) -->
+            <div class="p-10 hidden flex-col items-center justify-center text-center space-y-4" id="modal-waiting-body">
+                <i data-lucide="loader-2" class="w-12 h-12 text-solarglyph dark:text-blue-500 spin mx-auto"></i>
+                <h3 class="text-lg font-semibold">Obfuscating Scripts...</h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Please do not close this window.</p>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="p-6 border-t border-gray-300/30 dark:border-white/10 flex gap-3" id="modal-footer">
+                <button id="cancel-modal-btn" class="flex-1 py-3 rounded-xl border border-gray-300/50 dark:border-white/10 font-medium text-gray-600 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-white/10 transition-colors">Cancel</button>
+                <button id="confirm-obfuscate-btn" class="flex-1 py-3 rounded-xl bg-solarglyph dark:bg-blue-600 text-white font-medium hover:shadow-lg transition-all flex items-center justify-center gap-2">
+                    <i data-lucide="check" class="w-4 h-4"></i> Confirm & Pay
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- History Sidebar -->
+    <div id="history-sidebar" class="fixed top-0 right-0 h-full w-80 max-w-full z-[90] glass-card border-l border-gray-300/40 dark:border-white/10 shadow-2xl transition-transform duration-300 ease-in-out sidebar-closed flex flex-col bg-white/90 dark:bg-[#09090b]/95 backdrop-blur-xl">
+        <div class="p-5 border-b border-gray-300/30 dark:border-white/10 flex items-center justify-between">
+            <h2 class="text-lg font-semibold flex items-center gap-2">
+                <i data-lucide="history" class="w-5 h-5"></i> Local History
+            </h2>
+            <button id="close-history-btn" class="text-gray-400 hover:text-gray-700 dark:hover:text-white transition-colors p-1 rounded-lg hover:bg-black/5 dark:hover:bg-white/10">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+        <div class="flex-1 overflow-y-auto history-scroll p-4 space-y-4" id="history-list">
+            <!-- Dynamically populated -->
+            <p class="text-sm text-gray-500 dark:text-gray-400 text-center mt-10">No previous obfuscations found.</p>
+        </div>
+    </div>
+    <!-- Sidebar Overlay -->
+    <div id="history-overlay" class="fixed inset-0 bg-black/20 dark:bg-black/50 backdrop-blur-sm z-[89] hidden transition-opacity opacity-0"></div>
 
     <site-footer></site-footer>
 
     <script src="/shared/site.js"></script>
     <script>
         // ---------------------------------------------------------------
-        // State
+        // State & Local Storage History
         // ---------------------------------------------------------------
         let scripts = [];
         let activeId = null;
         let settings = { power: 'standard', strings: true, controlflow: true, minify: true };
         let lastResults = [];
+        let currentTotalCost = 0;
         const MOCK_BALANCE = 40;
+
+        // Load History from LocalStorage
+        let obfuscationHistory = JSON.parse(localStorage.getItem('sg_obfuscation_history') || '[]');
 
         const el = (id) => document.getElementById(id);
         function uid() { return Math.random().toString(36).slice(2, 9); }
@@ -305,33 +376,14 @@
             }
         }
 
-        function renderRecipe() {
-            const list = el('recipe-list');
-            list.innerHTML = '';
+        function updateMainButtonState() {
             let total = 0;
-
-            scripts.forEach((s, i) => {
-                const cost = estimateCost(s);
-                total += cost;
-                const row = document.createElement('div');
-                row.className = 'recipe-row flex items-center justify-between py-1 border-b border-gray-300/20 dark:border-white/5 last:border-0';
-                row.style.animationDelay = `${i * 40}ms`;
-                row.innerHTML = s.valid
-                    ? `<span class="text-gray-600 dark:text-gray-300 mono text-[13px] truncate flex items-center gap-2"><i data-lucide="file-code-2" class="w-3.5 h-3.5 text-solarglyph dark:text-blue-400"></i> ${s.name}</span>
-                       <span class="text-gray-500 dark:text-gray-400 text-xs mono font-medium">${cost} CR</span>`
-                    : `<span class="text-gray-400 mono text-[13px] truncate flex items-center gap-2"><i data-lucide="file-x-2" class="w-3.5 h-3.5"></i> ${s.name}</span>
-                       <span class="text-red-500/70 dark:text-red-400/70 text-[11px] uppercase tracking-wide">Skipped</span>`;
-                list.appendChild(row);
-            });
-
-            el('total-cost').textContent = `${total} CR`;
-            const after = MOCK_BALANCE - total;
-            el('balance-after').textContent = `Balance ${MOCK_BALANCE} → ${after < 0 ? '—' : after}`;
-
-            const submitBtn = el('submit-btn');
+            scripts.forEach(s => total += estimateCost(s));
+            currentTotalCost = total;
+            
+            const btn = el('open-modal-btn');
             const anyValid = scripts.some(s => s.valid);
-            submitBtn.disabled = !anyValid || total > MOCK_BALANCE;
-            if (window.lucide) lucide.createIcons();
+            btn.disabled = !anyValid || total > MOCK_BALANCE;
         }
 
         function renderAll() {
@@ -342,7 +394,7 @@
             });
             renderTabs();
             renderEditor();
-            renderRecipe();
+            updateMainButtonState();
         }
 
         // Editor input
@@ -353,8 +405,9 @@
             const check = checkValidity(active.content);
             active.valid = check.valid;
             active.checkReason = check.reason;
+            
             renderTabs();
-            renderRecipe();
+            updateMainButtonState();
             
             const badge = el('validity-badge');
             const count = el('char-count');
@@ -368,44 +421,21 @@
             }
         });
 
-        // Tabs / import
-        el('add-tab-btn').addEventListener('click', () => {
-            newScript(`script${scripts.length + 1}.lua`);
-            renderAll();
-        });
-
+        // Tabs / import / drag-drop events
+        el('add-tab-btn').addEventListener('click', () => { newScript(`script${scripts.length + 1}.lua`); renderAll(); });
         el('import-btn').addEventListener('click', () => el('file-input').click());
-
         el('file-input').addEventListener('change', async (e) => {
-            for (const file of e.target.files) {
-                const text = await file.text();
-                newScript(file.name, text);
-            }
+            for (const file of e.target.files) { const text = await file.text(); newScript(file.name, text); }
             renderAll();
         });
 
-        // Beautiful Drag and Drop
         const dropZone = el('drop-zone');
         const dropOverlay = el('drop-overlay');
-        
-        ['dragover', 'dragenter'].forEach(evt =>
-            dropZone.addEventListener(evt, (e) => { 
-                e.preventDefault(); 
-                dropOverlay.classList.remove('hidden'); 
-            })
-        );
-        ['dragleave', 'drop'].forEach(evt =>
-            dropZone.addEventListener(evt, (e) => { 
-                e.preventDefault(); 
-                dropOverlay.classList.add('hidden'); 
-            })
-        );
+        ['dragover', 'dragenter'].forEach(evt => dropZone.addEventListener(evt, (e) => { e.preventDefault(); dropOverlay.classList.remove('hidden'); }));
+        ['dragleave', 'drop'].forEach(evt => dropZone.addEventListener(evt, (e) => { e.preventDefault(); dropOverlay.classList.add('hidden'); }));
         dropZone.addEventListener('drop', async (e) => {
             const files = Array.from(e.dataTransfer.files || []);
-            for (const file of files) {
-                const text = await file.text();
-                newScript(file.name, text);
-            }
+            for (const file of files) { const text = await file.text(); newScript(file.name, text); }
             if (files.length) renderAll();
         });
 
@@ -419,7 +449,7 @@
                 });
                 btn.classList.remove('border-gray-300/50', 'dark:border-white/10', 'text-gray-500', 'dark:text-gray-400', 'hover:bg-white/40', 'dark:hover:bg-white/5');
                 btn.classList.add('border-solarglyph', 'dark:border-blue-400', 'bg-solarglyph/10', 'dark:bg-blue-400/10', 'text-solarglyph', 'dark:text-blue-400', 'shadow-[0_0_10px_rgba(37,99,235,0.1)]');
-                renderRecipe();
+                updateMainButtonState();
             });
         });
 
@@ -433,113 +463,272 @@
                 sw.classList.toggle('dark:bg-white/10', !settings[key]);
                 sw.querySelector('.toggle-knob').classList.toggle('translate-x-4', settings[key]);
                 sw.querySelector('.toggle-knob').classList.toggle('translate-x-0', !settings[key]);
-                renderRecipe();
+                updateMainButtonState();
             });
         });
+
+        // ---------------------------------------------------------------
+        // Modal & Obfuscation Flow
+        // ---------------------------------------------------------------
+        const modal = el('receipt-modal');
+        const modalContent = el('modal-content');
+        
+        function openModal() {
+            // Populate Modal Receipt
+            const list = el('modal-recipe-list');
+            list.innerHTML = '';
+            
+            scripts.forEach(s => {
+                if(!s.valid) return;
+                const cost = estimateCost(s);
+                const row = document.createElement('div');
+                row.className = 'flex items-center justify-between py-2 border-b border-gray-300/20 dark:border-white/5 last:border-0';
+                row.innerHTML = `
+                    <span class="text-gray-700 dark:text-gray-300 mono text-[13px] truncate flex items-center gap-2"><i data-lucide="file-code-2" class="w-4 h-4 text-solarglyph dark:text-blue-400"></i> ${s.name}</span>
+                    <span class="text-gray-600 dark:text-gray-400 text-xs mono font-medium">${cost} CR</span>
+                `;
+                list.appendChild(row);
+            });
+
+            el('modal-total-cost').textContent = `${currentTotalCost} CR`;
+            el('modal-balance-after').textContent = `${MOCK_BALANCE - currentTotalCost} CR`;
+
+            // Reset modal state
+            el('modal-receipt-body').classList.remove('hidden');
+            el('modal-footer').classList.remove('hidden');
+            el('modal-waiting-body').classList.add('hidden');
+            
+            modal.classList.remove('hidden', 'modal-exit');
+            modal.classList.add('modal-enter-active');
+            setTimeout(() => modalContent.classList.remove('scale-95'), 10);
+            if(window.lucide) lucide.createIcons();
+        }
+
+        function closeModal() {
+            modalContent.classList.add('scale-95');
+            modal.classList.remove('modal-enter-active');
+            modal.classList.add('modal-exit-active');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('modal-exit-active');
+            }, 300);
+        }
+
+        el('open-modal-btn').addEventListener('click', openModal);
+        el('close-modal-btn').addEventListener('click', closeModal);
+        el('cancel-modal-btn').addEventListener('click', closeModal);
+        el('close-modal-bg').addEventListener('click', closeModal);
 
         function mockObfuscate(code) {
             return `-- obfuscated (mock)\nlocal _a=(function()\n${code.split('\n').map(l => '  ' + l).join('\n')}\nend)\n_a()`;
         }
 
-        // Submit Action
-        el('submit-btn').addEventListener('click', async () => {
-            const btn = el('submit-btn');
-            const spinner = el('submit-spinner');
-            const label = el('submit-label');
-            const arrowIcon = btn.querySelector('[data-lucide="arrow-right"]');
-            
-            btn.disabled = true;
-            spinner.classList.remove('hidden');
-            if(arrowIcon) arrowIcon.classList.add('hidden');
-            label.textContent = 'Obfuscating...';
+        function saveToHistory(results) {
+            const entry = {
+                id: uid(),
+                date: new Date().toLocaleString(),
+                scripts: results.map(r => ({ name: r.name, output: r.output }))
+            };
+            obfuscationHistory.unshift(entry);
+            if(obfuscationHistory.length > 20) obfuscationHistory.pop(); // keep last 20
+            localStorage.setItem('sg_obfuscation_history', JSON.stringify(obfuscationHistory));
+            renderHistorySidebar();
+        }
 
-            await new Promise(r => setTimeout(r, 700));
+        el('confirm-obfuscate-btn').addEventListener('click', async () => {
+            // Show waiting screen in modal
+            el('modal-receipt-body').classList.add('hidden');
+            el('modal-footer').classList.add('hidden');
+            el('modal-waiting-body').classList.remove('hidden');
+            
+            // Mock network delay
+            await new Promise(r => setTimeout(r, 1500));
 
             const validScripts = scripts.filter(s => s.valid);
             lastResults = validScripts.map(s => ({ name: s.name, output: mockObfuscate(s.content) }));
 
+            saveToHistory(lastResults);
+
+            closeModal();
+
+            // Render Output Page
             el('output-panel').classList.remove('hidden');
             const filesEl = el('output-files');
             filesEl.innerHTML = '';
-            lastResults.forEach(r => {
+            
+            lastResults.forEach((r, index) => {
                 const block = document.createElement('div');
+                block.className = "bg-gray-50/50 dark:bg-black/30 rounded-xl border border-gray-300/40 dark:border-white/10 overflow-hidden";
                 block.innerHTML = `
-                    <div class="flex items-center gap-2 mb-2 px-1">
-                        <i data-lucide="file-json" class="w-4 h-4 text-solarglyph dark:text-blue-400"></i>
-                        <p class="text-[13px] mono font-medium text-gray-700 dark:text-gray-300">${r.name}</p>
+                    <div class="flex items-center justify-between px-4 py-3 border-b border-gray-300/30 dark:border-white/5 bg-white/50 dark:bg-white/[0.02]">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="file-json" class="w-4 h-4 text-solarglyph dark:text-blue-400"></i>
+                            <p class="text-[13px] mono font-medium text-gray-700 dark:text-gray-300">${r.name}</p>
+                        </div>
+                        <button class="copy-single-btn flex items-center gap-1.5 text-[11px] uppercase tracking-wider font-semibold text-gray-500 hover:text-solarglyph dark:hover:text-blue-400 transition-colors bg-white/40 dark:bg-white/5 px-2.5 py-1.5 rounded-md" data-index="${index}">
+                            <i data-lucide="copy" class="w-3.5 h-3.5 pointer-events-none"></i> <span class="pointer-events-none">Copy</span>
+                        </button>
                     </div>
-                    <pre class="mono text-xs text-gray-700 dark:text-gray-300 bg-gray-50/50 dark:bg-black/40 border border-gray-300/40 dark:border-white/10 rounded-xl p-5 overflow-x-auto whitespace-pre-wrap shadow-inner">${r.output.replace(/</g, '&lt;')}</pre>
+                    <pre class="mono text-xs text-gray-700 dark:text-gray-300 p-4 overflow-x-auto whitespace-pre-wrap">${r.output.replace(/</g, '&lt;')}</pre>
                 `;
                 filesEl.appendChild(block);
             });
 
-            spinner.classList.add('hidden');
-            if(arrowIcon) arrowIcon.classList.remove('hidden');
-            label.textContent = 'Obfuscate Scripts';
-            renderRecipe();
             if (window.lucide) lucide.createIcons();
             
-            // Scroll down to the output naturally
-            el('output-panel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            // Scroll down to the output
+            setTimeout(() => {
+                el('output-panel').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 300);
         });
 
-        // Fully Upgraded Copy Button
-        el('copy-output-btn').addEventListener('click', async () => {
-            const combined = lastResults.map(r => `-- ${r.name}\n${r.output}`).join('\n\n');
-            const btn = el('copy-output-btn');
+        // ---------------------------------------------------------------
+        // Copy Functions (Individual & All)
+        // ---------------------------------------------------------------
+        
+        // Individual Copy Buttons Event Delegation
+        el('output-files').addEventListener('click', async (e) => {
+            const btn = e.target.closest('.copy-single-btn');
+            if (!btn) return;
+            
+            const index = btn.getAttribute('data-index');
+            const content = lastResults[index].output;
             
             try {
-                await navigator.clipboard.writeText(combined);
-                
+                await navigator.clipboard.writeText(content);
                 const originalHtml = btn.innerHTML;
-                
-                btn.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5 text-green-500 dark:text-green-400"></i> <span class="text-green-500 dark:text-green-400">Copied!</span>`;
-                btn.classList.add('border-green-500/30', 'bg-green-500/10');
+                btn.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5 text-green-500"></i> <span class="text-green-500">Copied</span>`;
                 if (window.lucide) lucide.createIcons();
-                
-                setTimeout(() => {
-                    btn.innerHTML = originalHtml;
-                    btn.classList.remove('border-green-500/30', 'bg-green-500/10');
+                setTimeout(() => { 
+                    btn.innerHTML = originalHtml; 
                     if (window.lucide) lucide.createIcons();
                 }, 2000);
-                
-            } catch (err) {
-                console.error("Failed to copy output: ", err);
-                const originalHtml = btn.innerHTML;
-                btn.innerHTML = `<span class="text-red-500">Failed</span>`;
-                setTimeout(() => { btn.innerHTML = originalHtml; }, 2000);
+            } catch(err) {
+                console.error(err);
             }
         });
 
-        // Export Actions
+        // Copy All
+        el('copy-all-btn').addEventListener('click', async () => {
+            const combined = lastResults.map(r => `-- ${r.name}\n${r.output}`).join('\n\n');
+            const btn = el('copy-all-btn');
+            try {
+                await navigator.clipboard.writeText(combined);
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5 text-green-500"></i> <span class="text-green-500">Copied All!</span>`;
+                if (window.lucide) lucide.createIcons();
+                setTimeout(() => { btn.innerHTML = originalHtml; if (window.lucide) lucide.createIcons(); }, 2000);
+            } catch (err) { console.error(err); }
+        });
+
+        // Export All
         el('export-output-btn').addEventListener('click', async () => {
             if (!lastResults.length) return;
-
             if (lastResults.length === 1) {
                 const r = lastResults[0];
                 const blob = new Blob([r.output], { type: 'text/plain' });
                 const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = r.name.replace(/\.(lua|luau|txt)$/i, '') + '.obfuscated.lua';
-                a.click();
-                URL.revokeObjectURL(url);
+                const a = document.createElement('a'); a.href = url; a.download = r.name.replace(/\.(lua|luau|txt)$/i, '') + '.obfuscated.lua'; a.click(); URL.revokeObjectURL(url);
+                return;
+            }
+            const zip = new JSZip();
+            lastResults.forEach(r => zip.file(r.name.replace(/\.(lua|luau|txt)$/i, '') + '.obfuscated.lua', r.output));
+            const blob = await zip.generateAsync({ type: 'blob' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = 'obfuscated_batch.zip'; a.click(); URL.revokeObjectURL(url);
+        });
+
+        // ---------------------------------------------------------------
+        // History Sidebar Flow
+        // ---------------------------------------------------------------
+        const sidebar = el('history-sidebar');
+        const overlay = el('history-overlay');
+        
+        function toggleSidebar() {
+            const isClosed = sidebar.classList.contains('sidebar-closed');
+            if(isClosed) {
+                renderHistorySidebar();
+                overlay.classList.remove('hidden');
+                setTimeout(() => overlay.classList.remove('opacity-0'), 10);
+                sidebar.classList.remove('sidebar-closed');
+                sidebar.classList.add('sidebar-open');
+            } else {
+                sidebar.classList.add('sidebar-closed');
+                sidebar.classList.remove('sidebar-open');
+                overlay.classList.add('opacity-0');
+                setTimeout(() => overlay.classList.add('hidden'), 300);
+            }
+        }
+
+        el('toggle-history-btn').addEventListener('click', toggleSidebar);
+        el('close-history-btn').addEventListener('click', toggleSidebar);
+        overlay.addEventListener('click', toggleSidebar);
+
+        function renderHistorySidebar() {
+            const list = el('history-list');
+            list.innerHTML = '';
+            
+            if(obfuscationHistory.length === 0) {
+                list.innerHTML = `<p class="text-sm text-gray-500 dark:text-gray-400 text-center mt-10">No previous obfuscations found locally.</p>`;
                 return;
             }
 
-            const zip = new JSZip();
-            lastResults.forEach(r => {
-                const outName = r.name.replace(/\.(lua|luau|txt)$/i, '') + '.obfuscated.lua';
-                zip.file(outName, r.output);
+            obfuscationHistory.forEach(entry => {
+                const card = document.createElement('div');
+                card.className = "bg-gray-50/50 dark:bg-white/5 border border-gray-300/40 dark:border-white/10 rounded-xl p-4";
+                
+                let scriptsHtml = entry.scripts.map(s => `<div class="flex items-center gap-2 text-xs mono text-gray-600 dark:text-gray-300 mb-1"><i data-lucide="file-code" class="w-3 h-3 text-solarglyph dark:text-blue-400"></i> ${s.name}</div>`).join('');
+
+                card.innerHTML = `
+                    <div class="text-xs text-gray-400 mb-2 font-medium">${entry.date}</div>
+                    <div class="mb-3">${scriptsHtml}</div>
+                    <button class="w-full py-2 bg-white/50 dark:bg-black/30 hover:bg-white/80 dark:hover:bg-black/50 border border-gray-300/40 dark:border-white/10 rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-1.5 restore-btn" data-id="${entry.id}">
+                        <i data-lucide="eye" class="w-3.5 h-3.5"></i> View Results
+                    </button>
+                `;
+                list.appendChild(card);
             });
-            const blob = await zip.generateAsync({ type: 'blob' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'obfuscated_batch.zip';
-            a.click();
-            URL.revokeObjectURL(url);
-        });
+            
+            if (window.lucide) lucide.createIcons();
+
+            // Attach event listeners for restore buttons
+            list.querySelectorAll('.restore-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = e.currentTarget.getAttribute('data-id');
+                    const historyEntry = obfuscationHistory.find(x => x.id === id);
+                    if(historyEntry) {
+                        lastResults = historyEntry.scripts;
+                        
+                        // Force UI to display these outputs
+                        el('output-panel').classList.remove('hidden');
+                        const filesEl = el('output-files');
+                        filesEl.innerHTML = '';
+                        
+                        lastResults.forEach((r, index) => {
+                            const block = document.createElement('div');
+                            block.className = "bg-gray-50/50 dark:bg-black/30 rounded-xl border border-gray-300/40 dark:border-white/10 overflow-hidden";
+                            block.innerHTML = `
+                                <div class="flex items-center justify-between px-4 py-3 border-b border-gray-300/30 dark:border-white/5 bg-white/50 dark:bg-white/[0.02]">
+                                    <div class="flex items-center gap-2">
+                                        <i data-lucide="file-json" class="w-4 h-4 text-solarglyph dark:text-blue-400"></i>
+                                        <p class="text-[13px] mono font-medium text-gray-700 dark:text-gray-300">${r.name}</p>
+                                    </div>
+                                    <button class="copy-single-btn flex items-center gap-1.5 text-[11px] uppercase tracking-wider font-semibold text-gray-500 hover:text-solarglyph dark:hover:text-blue-400 transition-colors bg-white/40 dark:bg-white/5 px-2.5 py-1.5 rounded-md" data-index="${index}">
+                                        <i data-lucide="copy" class="w-3.5 h-3.5 pointer-events-none"></i> <span class="pointer-events-none">Copy</span>
+                                    </button>
+                                </div>
+                                <pre class="mono text-xs text-gray-700 dark:text-gray-300 p-4 overflow-x-auto whitespace-pre-wrap">${r.output.replace(/</g, '&lt;')}</pre>
+                            `;
+                            filesEl.appendChild(block);
+                        });
+                        
+                        if (window.lucide) lucide.createIcons();
+                        toggleSidebar(); // close sidebar
+                        el('output-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                });
+            });
+        }
 
         // Init
         renderAll();
