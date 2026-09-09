@@ -4,61 +4,89 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Results | Solarglyph Labs</title>
-    
+    <link rel="icon" href="https://www.solarglyphlabs.com/images/Logo/SolarglyphLabsLogoCut.png" type="image/png">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/jszip@3.10.1/dist/jszip.min.js"></script>
+
+    <!-- Solarglyph Brand Scripts -->
+    <script src="/shared/theme-config.js"></script>
+    <link rel="stylesheet" href="/shared/styles.css">
+    <script src="/shared/components.js" defer></script>
 
     <style>
         :root { --mono: 'JetBrains Mono', ui-monospace, monospace; }
         .mono { font-family: var(--mono); }
+        
+        pre::-webkit-scrollbar { width: 8px; height: 8px; }
+        pre::-webkit-scrollbar-track { background: transparent; }
+        pre::-webkit-scrollbar-thumb { background: rgba(120,130,150,0.2); border-radius: 4px; }
+        pre::-webkit-scrollbar-thumb:hover { background: rgba(120,130,150,0.4); }
     </style>
 </head>
-<body class="text-gray-800 dark:text-gray-200 bg-gray-50 dark:bg-[#0a0a0c] min-h-screen flex flex-col">
+<body class="text-apple-textLight dark:text-apple-textDark transition-colors duration-500 overflow-x-hidden relative flex flex-col min-h-screen">
+    
+    <!-- Brand Background -->
+    <div class="fixed inset-0 z-[-2] bg-cover bg-center" style="background-image: url('https://www.solarglyphlabs.com/images/Backgrounds/SolarGlyphCampus.png');"></div>
+    <div class="fixed inset-0 z-[-1] bg-white/80 dark:bg-black/75 backdrop-blur-[24px] transition-colors duration-500"></div>
 
-    <!-- Header -->
-    <header class="border-b border-gray-200 dark:border-white/10 bg-white dark:bg-[#121214] px-6 py-4 flex items-center justify-between sticky top-0 z-10">
-        <div class="flex items-center gap-4">
-            <a href="index.html" class="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg text-gray-500 transition-colors">
-                <i data-lucide="arrow-left" class="w-5 h-5"></i>
-            </a>
-            <div>
-                <h1 class="text-lg font-semibold flex items-center gap-2">
-                    <i data-lucide="check-circle-2" class="w-5 h-5 text-green-500"></i> Obfuscation Complete
-                </h1>
-                <p class="text-xs text-gray-500">Your scripts have been processed successfully.</p>
+    <site-nav page="tool"></site-nav>
+
+    <main class="relative z-10 flex-1 w-full max-w-6xl mx-auto pt-28 pb-40 px-4 flex flex-col reveal active">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-8">
+            <div class="flex items-center gap-4">
+                <a href="index.html" class="glass-card rounded-full p-2.5 flex items-center justify-center border border-gray-300/40 dark:border-white/10 hover:bg-white/40 dark:hover:bg-white/10 transition-colors shadow-sm text-gray-500 hover:text-apple-textLight dark:hover:text-white" title="Back to Editor">
+                    <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                </a>
+                <div>
+                    <h1 class="text-2xl font-bold tracking-tight mb-1 flex items-center gap-2">
+                        <i data-lucide="check-circle-2" class="w-6 h-6 text-green-500"></i> Obfuscation Complete
+                    </h1>
+                    <p class="text-gray-600 dark:text-gray-400 text-sm">Your scripts have been successfully secured.</p>
+                </div>
+            </div>
+            <div class="flex gap-3">
+                <button id="copy-all-btn" class="glass-card rounded-xl px-5 py-2.5 text-sm font-medium flex items-center gap-2 border border-gray-300/40 dark:border-white/10 hover:bg-white/40 dark:hover:bg-white/10 transition-colors shadow-sm">
+                    <i data-lucide="copy" class="w-4 h-4"></i> Copy All
+                </button>
+                <button id="export-all-btn" class="bg-solarglyph dark:bg-blue-600 text-white rounded-xl px-5 py-2.5 text-sm font-medium flex items-center gap-2 shadow-[0_4px_14px_rgba(37,99,235,0.2)] hover:-translate-y-0.5 transition-all">
+                    <i data-lucide="download" class="w-4 h-4"></i> Download ZIP
+                </button>
             </div>
         </div>
-        <div class="flex gap-3">
-            <button id="copy-all-btn" class="px-4 py-2 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 border border-gray-200 dark:border-white/10 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
-                <i data-lucide="copy" class="w-4 h-4"></i> Copy All
-            </button>
-            <button class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
-                <i data-lucide="download" class="w-4 h-4"></i> Download ZIP
-            </button>
-        </div>
-    </header>
 
-    <!-- Main Content -->
-    <main class="flex-1 max-w-[1400px] w-full mx-auto p-6">
+        <!-- Results Container -->
         <div id="results-container" class="space-y-8">
-            <!-- Injected by JS -->
+            <!-- Dynamically populated -->
         </div>
+        
     </main>
 
+    <site-footer></site-footer>
+
+    <script src="/shared/site.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const resultsData = sessionStorage.getItem('sg_current_results');
             if (!resultsData) {
                 document.getElementById('results-container').innerHTML = `
-                    <div class="text-center py-20 text-gray-500">
-                        <p>No results found in session.</p>
-                        <a href="index.html" class="text-blue-500 hover:underline mt-2 inline-block">Return to Editor</a>
+                    <div class="glass-card rounded-[2rem] p-12 text-center border border-gray-300/40 dark:border-white/10 shadow-lg">
+                        <i data-lucide="folder-x" class="w-12 h-12 text-gray-400 mx-auto mb-4"></i>
+                        <h2 class="text-lg font-medium mb-2">No results found</h2>
+                        <p class="text-gray-500 dark:text-gray-400 text-sm mb-6">It looks like you haven't obfuscated any scripts yet in this session.</p>
+                        <a href="index.html" class="inline-flex items-center gap-2 text-sm text-solarglyph dark:text-blue-400 hover:underline">
+                            Return to Editor <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        </a>
                     </div>
                 `;
+                if (window.lucide) lucide.createIcons();
                 return;
             }
 
@@ -66,30 +94,31 @@
             const container = document.getElementById('results-container');
             container.innerHTML = '';
 
+            // Generate Side-by-Side Views
             results.forEach((r, index) => {
                 const section = document.createElement('div');
-                section.className = "bg-white dark:bg-[#121214] border border-gray-200 dark:border-white/10 rounded-xl overflow-hidden shadow-sm";
+                section.className = "glass-card rounded-[2rem] overflow-hidden border border-gray-300/40 dark:border-white/10 shadow-lg";
                 
-                // Grid creates a side-by-side layout on desktop, stacked on mobile
                 section.innerHTML = `
-                    <div class="bg-gray-50 dark:bg-black/20 px-4 py-3 border-b border-gray-200 dark:border-white/10 flex justify-between items-center">
-                        <span class="font-medium text-sm mono flex items-center gap-2">
-                            <i data-lucide="file-code" class="w-4 h-4 text-blue-500"></i> ${r.name}
+                    <div class="bg-white/40 dark:bg-black/30 px-6 py-4 border-b border-gray-300/40 dark:border-white/10 flex justify-between items-center">
+                        <span class="font-semibold text-[15px] mono flex items-center gap-2">
+                            <i data-lucide="file-code-2" class="w-4 h-4 text-solarglyph dark:text-blue-400"></i> ${r.name}
                         </span>
-                        <button class="copy-single-btn px-3 py-1.5 text-xs font-medium border border-gray-200 dark:border-white/10 rounded bg-white dark:bg-white/5 hover:bg-gray-50 dark:hover:bg-white/10 flex items-center gap-1.5 transition-colors" data-index="${index}">
-                            <i data-lucide="copy" class="w-3 h-3"></i> Copy Output
+                        <button class="copy-single-btn px-4 py-2 text-xs font-semibold uppercase tracking-wide border border-gray-300/50 dark:border-white/10 rounded-lg bg-white/50 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-white/10 flex items-center gap-1.5 transition-colors text-gray-600 dark:text-gray-300" data-index="${index}">
+                            <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy Script
                         </button>
                     </div>
-                    <div class="grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-gray-200 dark:divide-white/10">
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-gray-300/40 dark:divide-white/10">
                         <!-- Original -->
-                        <div class="flex flex-col">
-                            <div class="px-4 py-2 text-[10px] uppercase tracking-wider text-gray-500 bg-gray-50/50 dark:bg-black/10 border-b border-gray-200 dark:border-white/10">Original Input</div>
-                            <pre class="p-4 text-xs mono text-gray-600 dark:text-gray-400 overflow-auto max-h-[400px]">${r.original.replace(/</g, '&lt;')}</pre>
+                        <div class="flex flex-col bg-gray-50/30 dark:bg-black/10">
+                            <div class="px-5 py-2.5 text-[10px] uppercase tracking-widest font-semibold text-gray-500 border-b border-gray-300/40 dark:border-white/10 bg-white/20 dark:bg-white/[0.02]">Original Input</div>
+                            <pre class="p-5 text-[13px] leading-relaxed mono text-gray-600 dark:text-gray-400 overflow-auto h-[450px]">${r.original.replace(/</g, '&lt;')}</pre>
                         </div>
                         <!-- Output -->
-                        <div class="flex flex-col">
-                            <div class="px-4 py-2 text-[10px] uppercase tracking-wider text-blue-600 dark:text-blue-400 font-semibold bg-blue-50 dark:bg-blue-900/10 border-b border-gray-200 dark:border-white/10">Obfuscated Output</div>
-                            <pre class="p-4 text-xs mono text-gray-800 dark:text-gray-200 overflow-auto max-h-[400px]">${r.output.replace(/</g, '&lt;')}</pre>
+                        <div class="flex flex-col bg-white/10 dark:bg-[#0a0a0c]/40">
+                            <div class="px-5 py-2.5 text-[10px] uppercase tracking-widest font-bold text-solarglyph dark:text-blue-400 border-b border-gray-300/40 dark:border-white/10 bg-solarglyph/5 dark:bg-blue-500/5">Secured Output</div>
+                            <pre class="p-5 text-[13px] leading-relaxed mono text-gray-800 dark:text-gray-200 overflow-auto h-[450px]">${r.output.replace(/</g, '&lt;')}</pre>
                         </div>
                     </div>
                 `;
@@ -98,27 +127,58 @@
 
             if (window.lucide) lucide.createIcons();
 
-            // Copy Single
+            // Interactivity: Copy Single
             document.querySelectorAll('.copy-single-btn').forEach(btn => {
                 btn.addEventListener('click', async (e) => {
                     const idx = e.currentTarget.getAttribute('data-index');
                     const text = results[idx].output;
-                    await navigator.clipboard.writeText(text);
-                    const orig = e.currentTarget.innerHTML;
-                    e.currentTarget.innerHTML = `<i data-lucide="check" class="w-3 h-3 text-green-500"></i> <span class="text-green-500">Copied</span>`;
-                    if (window.lucide) lucide.createIcons();
-                    setTimeout(() => { e.currentTarget.innerHTML = orig; if (window.lucide) lucide.createIcons(); }, 2000);
+                    try {
+                        await navigator.clipboard.writeText(text);
+                        const orig = e.currentTarget.innerHTML;
+                        e.currentTarget.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5 text-green-500"></i> <span class="text-green-500">Copied</span>`;
+                        e.currentTarget.classList.add('border-green-500/30', 'bg-green-500/10');
+                        if (window.lucide) lucide.createIcons();
+                        setTimeout(() => { 
+                            e.currentTarget.innerHTML = orig; 
+                            e.currentTarget.classList.remove('border-green-500/30', 'bg-green-500/10');
+                            if (window.lucide) lucide.createIcons(); 
+                        }, 2000);
+                    } catch(err) { console.error(err); }
                 });
             });
 
-            // Copy All
+            // Interactivity: Copy All
             document.getElementById('copy-all-btn').addEventListener('click', async (e) => {
                 const combined = results.map(r => `-- ${r.name}\n${r.output}`).join('\n\n');
-                await navigator.clipboard.writeText(combined);
-                const orig = e.currentTarget.innerHTML;
-                e.currentTarget.innerHTML = `<i data-lucide="check" class="w-4 h-4 text-green-500"></i> <span class="text-green-500">Copied All</span>`;
-                if (window.lucide) lucide.createIcons();
-                setTimeout(() => { e.currentTarget.innerHTML = orig; if (window.lucide) lucide.createIcons(); }, 2000);
+                try {
+                    await navigator.clipboard.writeText(combined);
+                    const orig = e.currentTarget.innerHTML;
+                    e.currentTarget.innerHTML = `<i data-lucide="check" class="w-4 h-4 text-green-500"></i> <span class="text-green-500">Copied All</span>`;
+                    e.currentTarget.classList.add('border-green-500/30', 'text-green-600', 'dark:text-green-400');
+                    if (window.lucide) lucide.createIcons();
+                    setTimeout(() => { 
+                        e.currentTarget.innerHTML = orig; 
+                        e.currentTarget.classList.remove('border-green-500/30', 'text-green-600', 'dark:text-green-400');
+                        if (window.lucide) lucide.createIcons(); 
+                    }, 2000);
+                } catch(err) { console.error(err); }
+            });
+
+            // Interactivity: Download ZIP
+            document.getElementById('export-all-btn').addEventListener('click', async () => {
+                if (!results.length) return;
+                if (results.length === 1) {
+                    const r = results[0];
+                    const blob = new Blob([r.output], { type: 'text/plain' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a'); a.href = url; a.download = r.name.replace(/\.(lua|luau|txt)$/i, '') + '.obfuscated.lua'; a.click(); URL.revokeObjectURL(url);
+                    return;
+                }
+                const zip = new JSZip();
+                results.forEach(r => zip.file(r.name.replace(/\.(lua|luau|txt)$/i, '') + '.obfuscated.lua', r.output));
+                const blob = await zip.generateAsync({ type: 'blob' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a'); a.href = url; a.download = 'obfuscated_batch.zip'; a.click(); URL.revokeObjectURL(url);
             });
         });
     </script>

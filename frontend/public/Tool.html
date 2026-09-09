@@ -4,23 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Obfuscate | Solarglyph Labs</title>
-    
+    <link rel="icon" href="https://www.solarglyphlabs.com/images/Logo/SolarglyphLabsLogoCut.png" type="image/png">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Added Confetti Library -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <!-- Solarglyph Brand Scripts -->
+    <script src="/shared/theme-config.js"></script>
+    <link rel="stylesheet" href="/shared/styles.css">
+    <script src="/shared/components.js" defer></script>
 
     <style>
         :root { --mono: 'JetBrains Mono', ui-monospace, monospace; }
         .mono { font-family: var(--mono); }
         
+        /* Custom Editor Scrollbars */
         textarea.script-input::-webkit-scrollbar { width: 8px; }
         textarea.script-input::-webkit-scrollbar-track { background: transparent; }
         textarea.script-input::-webkit-scrollbar-thumb { background: rgba(120,130,150,0.2); border-radius: 4px; }
+        textarea.script-input::-webkit-scrollbar-thumb:hover { background: rgba(120,130,150,0.4); }
         
         textarea.script-input {
             font-family: var(--mono);
@@ -29,163 +36,209 @@
             tab-size: 4;
             background: transparent;
         }
+        textarea.script-input::placeholder { color: #9CA3AF80; }
+        .dark textarea.script-input::placeholder { color: #6B7280; }
         
-        /* Unified layout specific styles */
-        .workspace-border { border-color: rgba(255,255,255,0.1); }
-        .dark .workspace-border { border-color: rgba(255,255,255,0.08); }
+        .tab-strip::-webkit-scrollbar { height: 4px; }
+        .tab-strip::-webkit-scrollbar-thumb { background: rgba(120,130,150,0.3); border-radius: 4px; }
         
         @keyframes spin { to { transform: rotate(360deg); } }
         .spin { animation: spin 0.8s linear infinite; }
         .toggle-knob { transition: transform 0.15s cubic-bezier(0.16,1,0.3,1); }
+        
+        @keyframes subtlePulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(0.98); }
+        }
+        .drop-icon-animate { animation: subtlePulse 2s infinite ease-in-out; }
+
+        /* Modal Transitions */
+        .modal-enter { opacity: 0; }
+        .modal-enter-active { opacity: 1; transition: opacity 0.3s ease-out; }
+        .modal-exit { opacity: 1; }
+        .modal-exit-active { opacity: 0; pointer-events: none; transition: opacity 0.3s ease-out; }
     </style>
 </head>
-<body class="text-gray-800 dark:text-gray-200 bg-gray-50 dark:bg-[#0a0a0c] transition-colors duration-500 overflow-x-hidden min-h-screen flex flex-col">
+<body class="text-apple-textLight dark:text-apple-textDark transition-colors duration-500 overflow-x-hidden relative flex flex-col min-h-screen">
+    
+    <!-- Brand Background -->
+    <div class="fixed inset-0 z-[-2] bg-cover bg-center" style="background-image: url('https://www.solarglyphlabs.com/images/Backgrounds/SolarGlyphCampus.png');"></div>
+    <div class="fixed inset-0 z-[-1] bg-white/80 dark:bg-black/75 backdrop-blur-[24px] transition-colors duration-500"></div>
 
-    <!-- Navbar Placeholder -->
-    <nav class="h-16 border-b border-gray-200 dark:border-white/5 flex items-center px-6 bg-white dark:bg-black/20">
-        <div class="font-bold text-lg tracking-tight flex items-center gap-2">
-            <div class="w-6 h-6 rounded bg-blue-600"></div> Solarglyph Labs
-        </div>
-    </nav>
+    <site-nav page="tool"></site-nav>
 
-    <main class="flex-1 max-w-[1400px] w-full mx-auto p-4 md:p-8 flex flex-col">
-        
+    <main class="relative z-10 flex-1 w-full max-w-6xl mx-auto pt-28 pb-40 px-4 flex flex-col">
+
         <!-- Header -->
-        <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center justify-between mb-6 reveal active">
             <div>
-                <h1 class="text-2xl font-semibold tracking-tight">Obfuscator Engine</h1>
-                <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Secure your Luau scripts before deployment.</p>
+                <h1 class="text-3xl font-bold tracking-tight mb-1">Obfuscator Engine</h1>
+                <p class="text-gray-600 dark:text-gray-400 text-sm">Secure your Luau scripts before deployment.</p>
             </div>
-            <div class="flex items-center gap-3">
-                <div class="px-4 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#121214] text-sm flex items-center gap-2 shadow-sm">
-                    <span class="text-gray-500">Balance:</span>
-                    <span id="balance-display" class="mono font-semibold text-blue-600 dark:text-blue-400">40 CR</span>
-                </div>
+            <div class="glass-card rounded-full px-5 py-2.5 text-sm flex items-center gap-2 border border-gray-300/40 dark:border-white/10 shadow-sm">
+                <span class="text-gray-500 dark:text-gray-400">Balance</span>
+                <span id="balance-display" class="mono font-semibold text-solarglyph dark:text-blue-400">40 credits</span>
             </div>
         </div>
 
-        <!-- UNIFIED WORKSPACE (No floating bubbles, one solid container) -->
-        <div class="flex flex-col lg:flex-row flex-1 bg-white dark:bg-[#121214] border border-gray-200 dark:border-white/10 rounded-xl shadow-xl overflow-hidden min-h-[650px]">
+        <!-- UNIFIED GLASS WORKSPACE -->
+        <div class="glass-card rounded-[2rem] overflow-hidden flex flex-col lg:flex-row shadow-2xl border border-gray-300/40 dark:border-white/10 flex-1 min-h-[650px] reveal active">
             
             <!-- LEFT COLUMN: EDITOR -->
-            <div class="flex-1 flex flex-col border-r border-gray-200 dark:border-white/10">
-                <!-- Editor Toolbar -->
-                <div class="h-12 border-b border-gray-200 dark:border-white/10 flex items-center bg-gray-50/50 dark:bg-black/20">
-                    <div id="tab-strip" class="flex h-full overflow-x-auto"></div>
-                    <button id="add-tab-btn" class="px-3 text-gray-400 hover:text-blue-500 h-full border-r border-gray-200 dark:border-white/10">
+            <div class="flex-1 flex flex-col border-b lg:border-b-0 lg:border-r border-gray-300/40 dark:border-white/10 relative">
+                
+                <!-- Drag and Drop Overlay -->
+                <div id="drop-overlay" class="absolute inset-0 z-20 hidden bg-white/60 dark:bg-black/60 backdrop-blur-md border-2 border-dashed border-solarglyph dark:border-blue-500 flex items-center justify-center pointer-events-none transition-all">
+                    <div class="flex flex-col items-center gap-3 text-solarglyph dark:text-blue-400 drop-icon-animate">
+                        <i data-lucide="file-down" class="w-10 h-10"></i>
+                        <span class="font-medium tracking-wide">Drop script here to load</span>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="flex items-stretch border-b border-gray-300/40 dark:border-white/10 px-2 bg-white/40 dark:bg-black/40 h-12">
+                    <div id="tab-strip" class="tab-strip flex items-stretch overflow-x-auto h-full"></div>
+                    <button id="add-tab-btn" title="Add script" class="flex items-center px-4 text-gray-400 hover:text-solarglyph dark:hover:text-blue-400 transition-colors shrink-0 h-full">
                         <i data-lucide="plus" class="w-4 h-4"></i>
                     </button>
                     <div class="flex-1"></div>
-                    <button id="import-btn" class="px-4 text-xs font-medium text-gray-500 hover:text-gray-900 dark:hover:text-white flex items-center gap-2 h-full">
+                    <button id="import-btn" class="flex items-center gap-1.5 px-4 text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-apple-textLight dark:hover:text-apple-textDark transition-colors shrink-0 h-full">
                         <i data-lucide="upload" class="w-3.5 h-3.5"></i> Import File
                     </button>
                     <input type="file" id="file-input" accept=".lua,.luau,.txt" multiple class="hidden">
                 </div>
 
                 <!-- Text Area -->
-                <div class="flex-1 relative bg-[#FAFAFA] dark:bg-[#0D0D0F]">
-                    <textarea id="script-input" class="script-input absolute inset-0 w-full h-full resize-none outline-none p-6 text-gray-800 dark:text-gray-200"
+                <div id="drop-zone" class="relative flex-1 bg-gray-50/50 dark:bg-black/20 group">
+                    <textarea id="script-input" class="script-input absolute inset-0 w-full h-full resize-none outline-none px-6 py-5 text-apple-textLight dark:text-apple-textDark transition-colors"
                         placeholder="-- Paste a Luau script here&#10;&#10;local function greet(name)&#10;    print('Hello, ' .. name)&#10;end" spellcheck="false"></textarea>
                 </div>
                 
                 <!-- Status Bar -->
-                <div class="h-8 border-t border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-black/40 flex items-center justify-between px-4 text-[11px] mono uppercase text-gray-500">
-                    <div id="validity-badge" class="flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-gray-400"></span> Empty
+                <div class="flex items-center justify-between px-5 py-2.5 bg-white/50 dark:bg-black/40 border-t border-gray-300/30 dark:border-white/5 text-[10px] uppercase tracking-widest mono font-medium">
+                    <div id="validity-badge" class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                        <span class="w-2 h-2 rounded-full bg-gray-400 shadow-sm shadow-gray-400/50"></span> Empty
                     </div>
-                    <span id="char-count">0 chars</span>
+                    <div class="flex items-center gap-4 text-gray-400 dark:text-gray-500">
+                        <span>UTF-8</span>
+                        <span>Luau</span>
+                        <span id="char-count">0 chars</span>
+                    </div>
                 </div>
             </div>
 
             <!-- RIGHT COLUMN: CONFIGURATION -->
-            <div class="w-full lg:w-80 flex flex-col bg-gray-50/30 dark:bg-[#161618]">
-                <div class="p-5 flex-1 space-y-6 overflow-y-auto">
+            <div class="w-full lg:w-80 flex flex-col bg-white/20 dark:bg-white/[0.02]">
+                <div class="p-6 flex-1 space-y-7 overflow-y-auto">
                     
                     <!-- Engine -->
                     <div>
-                        <label class="text-[11px] font-semibold uppercase tracking-wider text-gray-500 block mb-2">Engine Version</label>
-                        <select class="w-full bg-white dark:bg-[#0D0D0F] border border-gray-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm outline-none">
+                        <p class="text-[11px] uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2.5 font-semibold">Engine</p>
+                        <select class="w-full bg-white/50 dark:bg-black/30 border border-gray-300/50 dark:border-white/10 rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-solarglyph dark:focus:ring-blue-400 transition-all cursor-pointer">
                             <option>v1 — Standard Luau</option>
                         </select>
                     </div>
 
                     <!-- Power -->
                     <div>
-                        <label class="text-[11px] font-semibold uppercase tracking-wider text-gray-500 block mb-2">Power Level</label>
-                        <div class="grid grid-cols-3 gap-1 bg-gray-200/50 dark:bg-black/40 p-1 rounded-lg">
-                            <button class="power-btn text-xs py-1.5 rounded-md text-gray-500 hover:text-gray-800 dark:hover:text-white" data-power="light">Light</button>
-                            <button class="power-btn text-xs py-1.5 rounded-md bg-white dark:bg-[#252528] shadow-sm text-blue-600 dark:text-blue-400 font-medium" data-power="standard">Standard</button>
-                            <button class="power-btn text-xs py-1.5 rounded-md text-gray-500 hover:text-gray-800 dark:hover:text-white" data-power="heavy">Heavy</button>
+                        <p class="text-[11px] uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2.5 font-semibold">Power Level</p>
+                        <div class="grid grid-cols-3 gap-2" id="power-group">
+                            <button data-power="light" class="power-btn text-sm py-2 rounded-xl border border-gray-300/50 dark:border-white/10 text-gray-500 dark:text-gray-400 hover:bg-white/40 dark:hover:bg-white/5 transition-all">Light</button>
+                            <button data-power="standard" class="power-btn text-sm py-2 rounded-xl border border-solarglyph dark:border-blue-400 bg-solarglyph/10 dark:bg-blue-400/10 text-solarglyph dark:text-blue-400 shadow-[0_0_10px_rgba(37,99,235,0.1)] transition-all">Standard</button>
+                            <button data-power="heavy" class="power-btn text-sm py-2 rounded-xl border border-gray-300/50 dark:border-white/10 text-gray-500 dark:text-gray-400 hover:bg-white/40 dark:hover:bg-white/5 transition-all">Heavy</button>
                         </div>
                     </div>
 
                     <!-- Toggles -->
-                    <div class="space-y-3">
-                        <label class="text-[11px] font-semibold uppercase tracking-wider text-gray-500 block">Features</label>
-                        
-                        <label class="flex items-center justify-between cursor-pointer">
-                            <span class="text-sm">String encryption</span>
-                            <span class="toggle-switch relative inline-block w-8 h-4 rounded-full bg-blue-500" data-toggle="strings">
-                                <span class="toggle-knob absolute top-0.5 left-0.5 w-3 h-3 rounded-full bg-white transform translate-x-4"></span>
+                    <div class="space-y-4">
+                        <p class="text-[11px] uppercase tracking-wider text-gray-500 dark:text-gray-400 font-semibold">Toggles</p>
+
+                        <label class="flex items-center justify-between cursor-pointer group">
+                            <span class="text-sm group-hover:text-solarglyph dark:group-hover:text-blue-400 transition-colors">String encryption</span>
+                            <span class="toggle-switch relative inline-block w-9 h-5 rounded-full bg-solarglyph dark:bg-blue-500 transition-colors" data-toggle="strings">
+                                <span class="toggle-knob absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transform translate-x-4 shadow-sm"></span>
                             </span>
                         </label>
 
-                        <label class="flex items-center justify-between cursor-pointer">
-                            <span class="text-sm">Control-flow</span>
-                            <span class="toggle-switch relative inline-block w-8 h-4 rounded-full bg-blue-500" data-toggle="controlflow">
-                                <span class="toggle-knob absolute top-0.5 left-0.5 w-3 h-3 rounded-full bg-white transform translate-x-4"></span>
+                        <label class="flex items-center justify-between cursor-pointer group">
+                            <span class="text-sm group-hover:text-solarglyph dark:group-hover:text-blue-400 transition-colors">Control-flow</span>
+                            <span class="toggle-switch relative inline-block w-9 h-5 rounded-full bg-solarglyph dark:bg-blue-500 transition-colors" data-toggle="controlflow">
+                                <span class="toggle-knob absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transform translate-x-4 shadow-sm"></span>
+                            </span>
+                        </label>
+                        
+                        <label class="flex items-center justify-between cursor-pointer group">
+                            <span class="text-sm group-hover:text-solarglyph dark:group-hover:text-blue-400 transition-colors">Minify output</span>
+                            <span class="toggle-switch relative inline-block w-9 h-5 rounded-full bg-solarglyph dark:bg-blue-500 transition-colors" data-toggle="minify">
+                                <span class="toggle-knob absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transform translate-x-4 shadow-sm"></span>
                             </span>
                         </label>
                     </div>
                 </div>
 
                 <!-- Action Footer -->
-                <div class="p-5 border-t border-gray-200 dark:border-white/10 bg-white dark:bg-[#121214]">
+                <div class="p-6 border-t border-gray-300/30 dark:border-white/10 bg-white/40 dark:bg-black/30">
                     <div class="flex justify-between items-end mb-4">
-                        <span class="text-sm text-gray-500">Total Cost</span>
-                        <span id="total-cost" class="text-lg font-semibold mono">0 CR</span>
+                        <span class="text-sm text-gray-500 dark:text-gray-400">Total Cost</span>
+                        <span id="total-cost" class="text-lg font-semibold mono text-apple-textLight dark:text-white">0 credits</span>
                     </div>
-                    <button id="open-modal-btn" disabled class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-white/5 disabled:text-gray-500 text-white py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
-                        Obfuscate Scripts <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    <button id="open-modal-btn" disabled class="w-full bg-solarglyph dark:bg-blue-600 disabled:bg-gray-300/50 dark:disabled:bg-white/10 disabled:text-gray-500 text-white py-3.5 rounded-xl font-medium hover:not-disabled:shadow-[0_4px_14px_rgba(37,99,235,0.3)] hover:not-disabled:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2">
+                        Review & Obfuscate <i data-lucide="arrow-right" class="w-4 h-4"></i>
                     </button>
                 </div>
             </div>
         </div>
     </main>
 
-    <!-- Receipt Modal -->
-    <div id="receipt-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center">
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" id="close-modal-bg"></div>
-        <div class="relative w-full max-w-sm bg-white dark:bg-[#121214] border border-gray-200 dark:border-white/10 rounded-xl shadow-2xl overflow-hidden" id="modal-content">
-            <div class="p-5 border-b border-gray-200 dark:border-white/10">
-                <h3 class="font-semibold text-lg">Confirm Payment</h3>
-            </div>
+    <!-- Receipt Confirmation Modal (Glass style) -->
+    <div id="receipt-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center modal-exit">
+        <div class="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-md" id="close-modal-bg"></div>
+        <div class="relative w-full max-w-md mx-4 glass-card rounded-[2rem] border border-gray-300/50 dark:border-white/10 shadow-2xl overflow-hidden transform transition-transform duration-300 scale-95" id="modal-content">
             
-            <div class="p-5" id="modal-receipt-body">
-                <div id="modal-recipe-list" class="space-y-2 mb-4 max-h-32 overflow-y-auto text-sm"></div>
-                <div class="bg-gray-50 dark:bg-black/20 rounded-lg p-3 border border-gray-200 dark:border-white/5">
-                    <div class="flex justify-between text-sm mb-1"><span class="text-gray-500">Cost</span><span id="modal-total-cost" class="mono font-medium"></span></div>
-                    <div class="flex justify-between text-sm"><span class="text-gray-500">Remaining</span><span id="modal-balance-after" class="mono text-blue-500"></span></div>
+            <div class="p-6 pb-4 border-b border-gray-300/30 dark:border-white/10 flex items-center justify-between">
+                <h3 class="text-xl font-bold">Confirm Request</h3>
+                <button id="close-modal-btn" class="text-gray-400 hover:text-gray-700 dark:hover:text-white transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="p-6 bg-white/20 dark:bg-black/20" id="modal-receipt-body">
+                <div id="modal-recipe-list" class="space-y-2 mb-6 max-h-48 overflow-y-auto"></div>
+                
+                <div class="bg-gray-100/50 dark:bg-white/5 rounded-xl p-4 border border-gray-300/30 dark:border-white/5">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm text-gray-500 dark:text-gray-400">Total Cost</span>
+                        <span id="modal-total-cost" class="mono font-semibold">0 CR</span>
+                    </div>
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="text-gray-500 dark:text-gray-400">Remaining Balance</span>
+                        <span id="modal-balance-after" class="mono text-solarglyph dark:text-blue-400"></span>
+                    </div>
                 </div>
             </div>
 
-            <!-- Loading State -->
-            <div class="p-10 hidden flex-col items-center justify-center text-center space-y-3" id="modal-waiting-body">
-                <i data-lucide="loader-2" class="w-8 h-8 text-blue-500 spin mx-auto"></i>
-                <h3 class="font-medium text-sm">Processing...</h3>
+            <div class="p-10 hidden flex-col items-center justify-center text-center space-y-4" id="modal-waiting-body">
+                <i data-lucide="loader-2" class="w-12 h-12 text-solarglyph dark:text-blue-500 spin mx-auto"></i>
+                <h3 class="text-lg font-semibold">Obfuscating Scripts...</h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Please do not close this window.</p>
             </div>
 
-            <div class="p-4 border-t border-gray-200 dark:border-white/10 flex gap-2" id="modal-footer">
-                <button id="cancel-modal-btn" class="flex-1 py-2.5 rounded-lg border border-gray-200 dark:border-white/10 text-sm font-medium hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">Cancel</button>
-                <button id="confirm-obfuscate-btn" class="flex-1 py-2.5 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-colors">Confirm & Pay</button>
+            <div class="p-6 border-t border-gray-300/30 dark:border-white/10 flex gap-3" id="modal-footer">
+                <button id="cancel-modal-btn" class="flex-1 py-3 rounded-xl border border-gray-300/50 dark:border-white/10 font-medium text-gray-600 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-white/10 transition-colors">Cancel</button>
+                <button id="confirm-obfuscate-btn" class="flex-1 py-3 rounded-xl bg-solarglyph dark:bg-blue-600 text-white font-medium hover:shadow-lg transition-all flex items-center justify-center gap-2">
+                    <i data-lucide="check" class="w-4 h-4"></i> Confirm & Pay
+                </button>
             </div>
         </div>
     </div>
 
+    <site-footer></site-footer>
+
+    <script src="/shared/site.js"></script>
     <script>
         let scripts = [];
         let activeId = null;
-        let settings = { power: 'standard', strings: true, controlflow: true };
+        let settings = { power: 'standard', strings: true, controlflow: true, minify: true };
         let currentTotalCost = 0;
         const MOCK_BALANCE = 40;
 
@@ -201,11 +254,16 @@
 
         newScript('main.lua');
 
-        function checkValidity(code) { return { valid: code.trim().length > 0 }; }
+        function checkValidity(code) {
+            if (!code.trim()) return { valid: false, reason: 'empty' };
+            return { valid: true }; // Simplified for UI logic
+        }
 
         function estimateCost(script) {
             if (!script.valid) return 0;
-            let cost = { light: 2, standard: 4, heavy: 7 }[settings.power];
+            const base = { light: 2, standard: 4, heavy: 7 }[settings.power];
+            const sizeFactor = Math.ceil(script.content.length / 800);
+            let cost = base + sizeFactor;
             if (settings.strings) cost += 1;
             if (settings.controlflow) cost += 2;
             return cost;
@@ -217,54 +275,98 @@
             scripts.forEach(s => {
                 const tab = document.createElement('button');
                 const isActive = s.id === activeId;
-                tab.className = `flex items-center gap-2 px-4 h-full text-[13px] border-r border-gray-200 dark:border-white/10 transition-colors ${
-                    isActive ? 'bg-[#FAFAFA] dark:bg-[#0D0D0F] border-t-2 border-t-blue-500 text-blue-600 dark:text-blue-400' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-white/5 border-t-2 border-t-transparent'
+                tab.className = `group flex items-center gap-2 px-4 py-3 text-[13px] border-r border-gray-300/30 dark:border-white/10 shrink-0 transition-colors ${
+                    isActive ? 'text-apple-textLight dark:text-apple-textDark bg-white/60 dark:bg-white/[0.08] shadow-[inset_0_-2px_0_0_var(--tw-color-solarglyph)] dark:shadow-[inset_0_-2px_0_0_#3b82f6]' : 'text-gray-500 dark:text-gray-400 hover:bg-white/20 dark:hover:bg-white/[0.02] hover:text-apple-textLight dark:hover:text-apple-textDark'
                 }`;
-                tab.innerHTML = `<span class="mono">${s.name}</span>`;
-                tab.addEventListener('click', () => { activeId = s.id; renderAll(); });
+                tab.innerHTML = `
+                    <span class="w-1.5 h-1.5 rounded-full ${s.valid ? 'bg-green-500 dark:bg-green-400 shadow-[0_0_5px_rgba(34,197,94,0.4)]' : (s.content ? 'bg-red-500 dark:bg-red-400' : 'bg-gray-400')}"></span>
+                    <span class="mono">${s.name}</span>
+                    ${scripts.length > 1 ? '<i data-lucide="x" class="w-3.5 h-3.5 ml-1 opacity-0 group-hover:opacity-60 hover:!opacity-100 hover:text-red-500 transition-all"></i>' : ''}
+                `;
+                tab.addEventListener('click', (e) => {
+                    if (e.target.closest('[data-lucide="x"]')) {
+                        scripts = scripts.filter(x => x.id !== s.id);
+                        if (activeId === s.id) activeId = scripts[0]?.id;
+                        renderAll();
+                        return;
+                    }
+                    activeId = s.id;
+                    renderAll();
+                });
                 strip.appendChild(tab);
             });
+            if (window.lucide) lucide.createIcons();
         }
 
-        function updateState() {
+        function updateMainButtonState() {
             let total = 0;
-            scripts.forEach(s => {
-                s.valid = checkValidity(s.content).valid;
-                total += estimateCost(s);
-            });
+            scripts.forEach(s => total += estimateCost(s));
             currentTotalCost = total;
-            el('total-cost').textContent = `${total} CR`;
-            el('open-modal-btn').disabled = !scripts.some(s => s.valid) || total > MOCK_BALANCE;
+            el('total-cost').textContent = `${total} credits`;
+            
+            const btn = el('open-modal-btn');
+            const anyValid = scripts.some(s => s.valid);
+            btn.disabled = !anyValid || total > MOCK_BALANCE;
+        }
+
+        function renderEditor() {
+            const active = scripts.find(s => s.id === activeId);
+            const input = el('script-input');
+            input.value = active ? active.content : '';
+            input.disabled = !active;
+
+            const badge = el('validity-badge');
+            const count = el('char-count');
+            if (!active || !active.content) {
+                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-gray-400 shadow-sm shadow-gray-400/50"></span> Empty';
+                count.textContent = '0 chars';
+            } else if (active.valid) {
+                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-green-500 dark:bg-green-400 shadow-sm shadow-green-500/50"></span> Ready';
+                count.textContent = `${active.content.length} chars`;
+            }
         }
 
         function renderAll() {
+            scripts.forEach(s => {
+                const check = checkValidity(s.content);
+                s.valid = check.valid;
+            });
             renderTabs();
-            const active = scripts.find(s => s.id === activeId);
-            el('script-input').value = active ? active.content : '';
-            el('char-count').textContent = `${active ? active.content.length : 0} chars`;
-            
-            const badge = el('validity-badge');
-            if(!active || !active.content) badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-gray-400"></span> Empty';
-            else badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-green-500"></span> Ready';
-            
-            updateState();
+            renderEditor();
+            updateMainButtonState();
         }
 
-        // Input
+        // Inputs
         el('script-input').addEventListener('input', (e) => {
             const active = scripts.find(s => s.id === activeId);
-            if(active) { active.content = e.target.value; renderAll(); }
+            if (!active) return;
+            active.content = e.target.value;
+            active.valid = checkValidity(active.content).valid;
+            renderAll();
         });
 
-        // Toggles
+        el('add-tab-btn').addEventListener('click', () => { newScript(`script${scripts.length + 1}.lua`); renderAll(); });
+        
+        // Drag and Drop
+        const dropZone = el('drop-zone');
+        const dropOverlay = el('drop-overlay');
+        ['dragover', 'dragenter'].forEach(evt => dropZone.addEventListener(evt, (e) => { e.preventDefault(); dropOverlay.classList.remove('hidden'); }));
+        ['dragleave', 'drop'].forEach(evt => dropZone.addEventListener(evt, (e) => { e.preventDefault(); dropOverlay.classList.add('hidden'); }));
+        dropZone.addEventListener('drop', async (e) => {
+            const files = Array.from(e.dataTransfer.files || []);
+            for (const file of files) { const text = await file.text(); newScript(file.name, text); }
+            if (files.length) renderAll();
+        });
+
+        // Config UI
         document.querySelectorAll('.power-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 settings.power = btn.dataset.power;
                 document.querySelectorAll('.power-btn').forEach(b => {
-                    b.className = 'power-btn text-xs py-1.5 rounded-md text-gray-500 hover:text-gray-800 dark:hover:text-white';
+                    b.className = 'power-btn text-sm py-2 rounded-xl border border-gray-300/50 dark:border-white/10 text-gray-500 dark:text-gray-400 hover:bg-white/40 dark:hover:bg-white/5 transition-all';
                 });
-                btn.className = 'power-btn text-xs py-1.5 rounded-md bg-white dark:bg-[#252528] shadow-sm text-blue-600 dark:text-blue-400 font-medium';
-                updateState();
+                btn.className = 'power-btn text-sm py-2 rounded-xl border border-solarglyph dark:border-blue-400 bg-solarglyph/10 dark:bg-blue-400/10 text-solarglyph dark:text-blue-400 shadow-[0_0_10px_rgba(37,99,235,0.1)] transition-all';
+                updateMainButtonState();
             });
         });
 
@@ -272,52 +374,73 @@
             sw.addEventListener('click', () => {
                 const key = sw.dataset.toggle;
                 settings[key] = !settings[key];
-                sw.classList.toggle('bg-blue-500', settings[key]);
+                sw.classList.toggle('bg-solarglyph', settings[key]);
+                sw.classList.toggle('dark:bg-blue-500', settings[key]);
                 sw.classList.toggle('bg-gray-300', !settings[key]);
+                sw.classList.toggle('dark:bg-white/10', !settings[key]);
                 sw.querySelector('.toggle-knob').classList.toggle('translate-x-4', settings[key]);
                 sw.querySelector('.toggle-knob').classList.toggle('translate-x-0', !settings[key]);
-                updateState();
+                updateMainButtonState();
             });
         });
 
-        // Modal Logic
+        // Modal Flow
         const modal = el('receipt-modal');
+        const modalContent = el('modal-content');
+
         el('open-modal-btn').addEventListener('click', () => {
-            el('modal-recipe-list').innerHTML = scripts.filter(s => s.valid).map(s => 
-                `<div class="flex justify-between"><span class="mono">${s.name}</span><span class="text-gray-500">${estimateCost(s)} CR</span></div>`
-            ).join('');
+            const list = el('modal-recipe-list');
+            list.innerHTML = scripts.filter(s => s.valid).map(s => `
+                <div class="flex items-center justify-between py-2 border-b border-gray-300/20 dark:border-white/5 last:border-0">
+                    <span class="text-gray-700 dark:text-gray-300 mono text-[13px] truncate flex items-center gap-2"><i data-lucide="file-code-2" class="w-4 h-4 text-solarglyph dark:text-blue-400"></i> ${s.name}</span>
+                    <span class="text-gray-600 dark:text-gray-400 text-xs mono font-medium">${estimateCost(s)} CR</span>
+                </div>
+            `).join('');
+
             el('modal-total-cost').textContent = `${currentTotalCost} CR`;
             el('modal-balance-after').textContent = `${MOCK_BALANCE - currentTotalCost} CR`;
-            modal.classList.remove('hidden');
+
+            el('modal-receipt-body').classList.remove('hidden');
+            el('modal-footer').classList.remove('hidden');
+            el('modal-waiting-body').classList.add('hidden');
+            
+            modal.classList.remove('hidden', 'modal-exit');
+            modal.classList.add('modal-enter-active');
+            setTimeout(() => modalContent.classList.remove('scale-95'), 10);
+            if(window.lucide) lucide.createIcons();
         });
 
-        const closeModal = () => modal.classList.add('hidden');
+        const closeModal = () => {
+            modalContent.classList.add('scale-95');
+            modal.classList.remove('modal-enter-active');
+            modal.classList.add('modal-exit-active');
+            setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('modal-exit-active'); }, 300);
+        };
         el('cancel-modal-btn').addEventListener('click', closeModal);
+        el('close-modal-btn').addEventListener('click', closeModal);
         el('close-modal-bg').addEventListener('click', closeModal);
 
         function mockObfuscate(code) {
             return `-- Obfuscated by Solarglyph Engine v1\nlocal _env = getfenv();\nlocal function _obf()\n${code.split('\n').map(l => '  ' + l).join('\n')}\nend\n_obf();`;
         }
 
-        // The Confirmation + Confetti + Redirect
         el('confirm-obfuscate-btn').addEventListener('click', async () => {
             el('modal-receipt-body').classList.add('hidden');
             el('modal-footer').classList.add('hidden');
             el('modal-waiting-body').classList.remove('hidden');
             el('modal-waiting-body').classList.add('flex');
             
-            await new Promise(r => setTimeout(r, 1000));
+            await new Promise(r => setTimeout(r, 1200));
 
-            // Trigger Confetti over the modal
+            // Confetti
             confetti({
                 particleCount: 150,
                 spread: 80,
-                origin: { y: 0.4 }, // slightly higher up
+                origin: { y: 0.4 },
                 colors: ['#2563eb', '#3b82f6', '#60a5fa', '#ffffff'],
                 zIndex: 9999
             });
 
-            // Process data
             const validScripts = scripts.filter(s => s.valid);
             const results = validScripts.map(s => ({ 
                 name: s.name, 
@@ -325,13 +448,11 @@
                 output: mockObfuscate(s.content) 
             }));
 
-            // Save to session storage for the next page to read
+            // Store in session for the next page
             sessionStorage.setItem('sg_current_results', JSON.stringify(results));
 
-            // Redirect after allowing confetti to fall
-            setTimeout(() => {
-                window.location.href = 'results.html';
-            }, 1800);
+            // Redirect
+            setTimeout(() => { window.location.href = 'results.html'; }, 1800);
         });
 
         renderAll();
