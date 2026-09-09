@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="dark style-smooth">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,234 +8,246 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Inter closely mimics Apple's San Francisco font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
-    <!-- Solarglyph Brand Scripts -->
-    <script src="/shared/theme-config.js"></script>
-    <link rel="stylesheet" href="/shared/styles.css">
-    <script src="/shared/components.js" defer></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
+                    },
+                    colors: {
+                        apple: {
+                            blue: '#0071e3',
+                            dark: '#000000',
+                            light: '#f5f5f7',
+                            gray: '#1d1d1f',
+                            borderDark: '#333336',
+                            borderLight: '#d2d2d7'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
 
     <style>
-        :root { --mono: 'JetBrains Mono', ui-monospace, monospace; }
-        .mono { font-family: var(--mono); }
-        
-        /* Custom Editor Scrollbars */
-        textarea.script-input::-webkit-scrollbar { width: 8px; }
-        textarea.script-input::-webkit-scrollbar-track { background: transparent; }
-        textarea.script-input::-webkit-scrollbar-thumb { background: rgba(120,130,150,0.2); border-radius: 4px; }
-        textarea.script-input::-webkit-scrollbar-thumb:hover { background: rgba(120,130,150,0.4); }
+        /* Apple-style Scrollbars */
+        ::-webkit-scrollbar { width: 10px; height: 10px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(120,130,150,0.3); border-radius: 10px; border: 2px solid transparent; background-clip: padding-box; }
+        ::-webkit-scrollbar-thumb:hover { background-color: rgba(120,130,150,0.5); }
         
         textarea.script-input {
-            font-family: var(--mono);
-            font-size: 13.5px;
-            line-height: 24px;
             tab-size: 4;
             background: transparent;
         }
-        textarea.script-input::placeholder { color: #9CA3AF80; }
-        .dark textarea.script-input::placeholder { color: #6B7280; }
-        
-        .tab-strip::-webkit-scrollbar { height: 4px; }
-        .tab-strip::-webkit-scrollbar-thumb { background: rgba(120,130,150,0.3); border-radius: 4px; }
         
         @keyframes spin { to { transform: rotate(360deg); } }
         .spin { animation: spin 0.8s linear infinite; }
-        .toggle-knob { transition: transform 0.15s cubic-bezier(0.16,1,0.3,1); }
         
-        @keyframes subtlePulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.8; transform: scale(0.98); }
-        }
-        .drop-icon-animate { animation: subtlePulse 2s infinite ease-in-out; }
-
         /* Modal Transitions */
-        .modal-enter { opacity: 0; }
-        .modal-enter-active { opacity: 1; transition: opacity 0.3s ease-out; }
-        .modal-exit { opacity: 1; }
-        .modal-exit-active { opacity: 0; pointer-events: none; transition: opacity 0.3s ease-out; }
+        .modal-enter { opacity: 0; transform: scale(0.95); }
+        .modal-enter-active { opacity: 1; transform: scale(1); transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        .modal-exit { opacity: 1; transform: scale(1); }
+        .modal-exit-active { opacity: 0; transform: scale(0.95); pointer-events: none; transition: all 0.2s ease-in; }
+
+        /* iOS Toggle Switch */
+        .ios-toggle { transition: background-color 0.3s ease; }
+        .ios-knob { transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
     </style>
 </head>
-<body class="text-apple-textLight dark:text-apple-textDark transition-colors duration-500 overflow-x-hidden relative flex flex-col min-h-screen">
+<body class="bg-white dark:bg-apple-dark text-apple-gray dark:text-gray-100 font-sans h-screen flex flex-col overflow-hidden transition-colors duration-300">
     
-    <!-- Brand Background -->
-    <div class="fixed inset-0 z-[-2] bg-cover bg-center" style="background-image: url('https://www.solarglyphlabs.com/images/Backgrounds/SolarGlyphCampus.png');"></div>
-    <div class="fixed inset-0 z-[-1] bg-white/80 dark:bg-black/75 backdrop-blur-[24px] transition-colors duration-500"></div>
-
-    <site-nav page="tool"></site-nav>
-
-    <main class="relative z-10 flex-1 w-full max-w-6xl mx-auto pt-28 pb-40 px-4 flex flex-col">
-
-        <!-- Header -->
-        <div class="flex items-center justify-between mb-6 reveal active">
-            <div>
-                <h1 class="text-3xl font-bold tracking-tight mb-1">Obfuscator Engine</h1>
-                <p class="text-gray-600 dark:text-gray-400 text-sm">Secure your Luau scripts before deployment.</p>
-            </div>
-            <div class="glass-card rounded-full px-5 py-2.5 text-sm flex items-center gap-2 border border-gray-300/40 dark:border-white/10 shadow-sm">
+    <!-- Apple-style Minimal Navigation -->
+    <nav class="h-14 w-full backdrop-blur-xl bg-white/70 dark:bg-black/70 border-b border-apple-borderLight dark:border-apple-borderDark flex items-center justify-between px-6 z-40 shrink-0">
+        <div class="flex items-center gap-2">
+            <div class="w-6 h-6 rounded-md bg-apple-blue flex items-center justify-center text-white font-bold text-xs">S</div>
+            <span class="font-semibold tracking-tight text-sm">Solarglyph Labs</span>
+        </div>
+        <div class="flex items-center gap-4 text-xs font-medium">
+            <span class="text-gray-500">Workspace</span>
+            <div class="px-3 py-1.5 rounded-full bg-gray-100 dark:bg-gray-800/80 flex items-center gap-2 transition-colors">
                 <span class="text-gray-500 dark:text-gray-400">Balance</span>
-                <span id="balance-display" class="mono font-semibold text-solarglyph dark:text-blue-400">40 credits</span>
+                <span id="balance-display" class="font-mono text-apple-blue font-semibold">40 CR</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Full-Bleed App Workspace -->
+    <main class="flex-1 flex flex-col lg:flex-row w-full overflow-hidden relative">
+        
+        <!-- LEFT COLUMN: EDITOR (Edge to Edge) -->
+        <div class="flex-1 flex flex-col border-b lg:border-b-0 lg:border-r border-apple-borderLight dark:border-apple-borderDark relative bg-white dark:bg-[#0a0a0c]">
+            
+            <!-- Header inline with editor -->
+            <div class="px-6 py-5 border-b border-apple-borderLight dark:border-apple-borderDark shrink-0 flex justify-between items-end">
+                <div>
+                    <h1 class="text-3xl font-semibold tracking-tight mb-1">Obfuscator Engine.</h1>
+                    <p class="text-gray-500 text-sm">Pro-level security for your Luau scripts.</p>
+                </div>
+            </div>
+
+            <!-- Drag and Drop Overlay -->
+            <div id="drop-overlay" class="absolute inset-0 z-20 hidden bg-white/80 dark:bg-black/80 backdrop-blur-lg flex items-center justify-center transition-all">
+                <div class="flex flex-col items-center gap-4 text-apple-blue">
+                    <i data-lucide="file-plus-2" class="w-16 h-16"></i>
+                    <span class="text-2xl font-semibold tracking-tight">Drop script to load</span>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="flex items-stretch border-b border-apple-borderLight dark:border-apple-borderDark bg-gray-50/50 dark:bg-[#111113] h-11 shrink-0 overflow-hidden">
+                <div id="tab-strip" class="tab-strip flex items-stretch overflow-x-auto h-full scrollbar-none"></div>
+                <button id="add-tab-btn" class="flex items-center justify-center w-11 text-gray-400 hover:text-apple-blue transition-colors shrink-0 h-full border-l border-apple-borderLight dark:border-apple-borderDark">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                </button>
+                <div class="flex-1"></div>
+                <button id="import-btn" class="flex items-center gap-2 px-4 text-xs font-medium text-gray-500 hover:text-black dark:hover:text-white transition-colors shrink-0 h-full border-l border-apple-borderLight dark:border-apple-borderDark" onclick="document.getElementById('file-input').click()">
+                    <i data-lucide="folder-open" class="w-4 h-4"></i> Import
+                </button>
+                <input type="file" id="file-input" accept=".lua,.luau,.txt" multiple class="hidden">
+            </div>
+
+            <!-- Text Area -->
+            <div id="drop-zone" class="relative flex-1 group">
+                <textarea id="script-input" class="script-input absolute inset-0 w-full h-full resize-none outline-none px-6 py-6 font-mono text-[14px] leading-relaxed text-gray-800 dark:text-gray-200"
+                    placeholder="-- Paste a Luau script here&#10;&#10;local function greet(name)&#10;    print('Hello, ' .. name)&#10;end" spellcheck="false"></textarea>
+            </div>
+            
+            <!-- Editor Footer / Status -->
+            <div class="h-8 flex items-center justify-between px-6 bg-gray-50 dark:bg-[#0a0a0c] border-t border-apple-borderLight dark:border-apple-borderDark text-[11px] font-mono text-gray-500 shrink-0">
+                <div id="validity-badge" class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-gray-400"></span> Empty
+                </div>
+                <div class="flex items-center gap-6">
+                    <span>UTF-8</span>
+                    <span>Luau</span>
+                    <span id="char-count">0 chars</span>
+                </div>
             </div>
         </div>
 
-        <!-- UNIFIED GLASS WORKSPACE -->
-        <div class="glass-card rounded-[2rem] overflow-hidden flex flex-col lg:flex-row shadow-2xl border border-gray-300/40 dark:border-white/10 flex-1 min-h-[650px] reveal active">
-            
-            <!-- LEFT COLUMN: EDITOR -->
-            <div class="flex-1 flex flex-col border-b lg:border-b-0 lg:border-r border-gray-300/40 dark:border-white/10 relative">
+        <!-- RIGHT COLUMN: SETTINGS (Sidebar) -->
+        <aside class="w-full lg:w-[360px] flex flex-col bg-gray-50 dark:bg-[#111113] shrink-0 h-full z-10">
+            <div class="flex-1 overflow-y-auto p-6 space-y-8">
                 
-                <!-- Drag and Drop Overlay -->
-                <div id="drop-overlay" class="absolute inset-0 z-20 hidden bg-white/60 dark:bg-black/60 backdrop-blur-md border-2 border-dashed border-solarglyph dark:border-blue-500 flex items-center justify-center pointer-events-none transition-all">
-                    <div class="flex flex-col items-center gap-3 text-solarglyph dark:text-blue-400 drop-icon-animate">
-                        <i data-lucide="file-down" class="w-10 h-10"></i>
-                        <span class="font-medium tracking-wide">Drop script here to load</span>
-                    </div>
-                </div>
-
-                <!-- Tabs -->
-                <div class="flex items-stretch border-b border-gray-300/40 dark:border-white/10 px-2 bg-white/40 dark:bg-black/40 h-12">
-                    <div id="tab-strip" class="tab-strip flex items-stretch overflow-x-auto h-full"></div>
-                    <button id="add-tab-btn" title="Add script" class="flex items-center px-4 text-gray-400 hover:text-solarglyph dark:hover:text-blue-400 transition-colors shrink-0 h-full">
-                        <i data-lucide="plus" class="w-4 h-4"></i>
-                    </button>
-                    <div class="flex-1"></div>
-                    <button id="import-btn" class="flex items-center gap-1.5 px-4 text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-apple-textLight dark:hover:text-apple-textDark transition-colors shrink-0 h-full">
-                        <i data-lucide="upload" class="w-3.5 h-3.5"></i> Import File
-                    </button>
-                    <input type="file" id="file-input" accept=".lua,.luau,.txt" multiple class="hidden">
-                </div>
-
-                <!-- Text Area -->
-                <div id="drop-zone" class="relative flex-1 bg-gray-50/50 dark:bg-black/20 group">
-                    <textarea id="script-input" class="script-input absolute inset-0 w-full h-full resize-none outline-none px-6 py-5 text-apple-textLight dark:text-apple-textDark transition-colors"
-                        placeholder="-- Paste a Luau script here&#10;&#10;local function greet(name)&#10;    print('Hello, ' .. name)&#10;end" spellcheck="false"></textarea>
-                </div>
-                
-                <!-- Status Bar -->
-                <div class="flex items-center justify-between px-5 py-2.5 bg-white/50 dark:bg-black/40 border-t border-gray-300/30 dark:border-white/5 text-[10px] uppercase tracking-widest mono font-medium">
-                    <div id="validity-badge" class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
-                        <span class="w-2 h-2 rounded-full bg-gray-400 shadow-sm shadow-gray-400/50"></span> Empty
-                    </div>
-                    <div class="flex items-center gap-4 text-gray-400 dark:text-gray-500">
-                        <span>UTF-8</span>
-                        <span>Luau</span>
-                        <span id="char-count">0 chars</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- RIGHT COLUMN: CONFIGURATION -->
-            <div class="w-full lg:w-80 flex flex-col bg-white/20 dark:bg-white/[0.02]">
-                <div class="p-6 flex-1 space-y-7 overflow-y-auto">
-                    
-                    <!-- Engine -->
-                    <div>
-                        <p class="text-[11px] uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2.5 font-semibold">Engine</p>
-                        <select class="w-full bg-white/50 dark:bg-black/30 border border-gray-300/50 dark:border-white/10 rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-solarglyph dark:focus:ring-blue-400 transition-all cursor-pointer">
+                <!-- Engine -->
+                <div>
+                    <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Engine</h3>
+                    <div class="relative">
+                        <select class="w-full appearance-none bg-white dark:bg-black border border-apple-borderLight dark:border-apple-borderDark rounded-xl px-4 py-3 text-sm outline-none focus:border-apple-blue dark:focus:border-apple-blue transition-colors cursor-pointer font-medium">
                             <option>v1 — Standard Luau</option>
                         </select>
-                    </div>
-
-                    <!-- Power -->
-                    <div>
-                        <p class="text-[11px] uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2.5 font-semibold">Power Level</p>
-                        <div class="grid grid-cols-3 gap-2" id="power-group">
-                            <button data-power="light" class="power-btn text-sm py-2 rounded-xl border border-gray-300/50 dark:border-white/10 text-gray-500 dark:text-gray-400 hover:bg-white/40 dark:hover:bg-white/5 transition-all">Light</button>
-                            <button data-power="standard" class="power-btn text-sm py-2 rounded-xl border border-solarglyph dark:border-blue-400 bg-solarglyph/10 dark:bg-blue-400/10 text-solarglyph dark:text-blue-400 shadow-[0_0_10px_rgba(37,99,235,0.1)] transition-all">Standard</button>
-                            <button data-power="heavy" class="power-btn text-sm py-2 rounded-xl border border-gray-300/50 dark:border-white/10 text-gray-500 dark:text-gray-400 hover:bg-white/40 dark:hover:bg-white/5 transition-all">Heavy</button>
-                        </div>
-                    </div>
-
-                    <!-- Toggles -->
-                    <div class="space-y-4">
-                        <p class="text-[11px] uppercase tracking-wider text-gray-500 dark:text-gray-400 font-semibold">Toggles</p>
-
-                        <label class="flex items-center justify-between cursor-pointer group">
-                            <span class="text-sm group-hover:text-solarglyph dark:group-hover:text-blue-400 transition-colors">String encryption</span>
-                            <span class="toggle-switch relative inline-block w-9 h-5 rounded-full bg-solarglyph dark:bg-blue-500 transition-colors" data-toggle="strings">
-                                <span class="toggle-knob absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transform translate-x-4 shadow-sm"></span>
-                            </span>
-                        </label>
-
-                        <label class="flex items-center justify-between cursor-pointer group">
-                            <span class="text-sm group-hover:text-solarglyph dark:group-hover:text-blue-400 transition-colors">Control-flow</span>
-                            <span class="toggle-switch relative inline-block w-9 h-5 rounded-full bg-solarglyph dark:bg-blue-500 transition-colors" data-toggle="controlflow">
-                                <span class="toggle-knob absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transform translate-x-4 shadow-sm"></span>
-                            </span>
-                        </label>
-                        
-                        <label class="flex items-center justify-between cursor-pointer group">
-                            <span class="text-sm group-hover:text-solarglyph dark:group-hover:text-blue-400 transition-colors">Minify output</span>
-                            <span class="toggle-switch relative inline-block w-9 h-5 rounded-full bg-solarglyph dark:bg-blue-500 transition-colors" data-toggle="minify">
-                                <span class="toggle-knob absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transform translate-x-4 shadow-sm"></span>
-                            </span>
-                        </label>
+                        <i data-lucide="chevron-down" class="w-4 h-4 absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
                     </div>
                 </div>
 
-                <!-- Action Footer -->
-                <div class="p-6 border-t border-gray-300/30 dark:border-white/10 bg-white/40 dark:bg-black/30">
-                    <div class="flex justify-between items-end mb-4">
-                        <span class="text-sm text-gray-500 dark:text-gray-400">Total Cost</span>
-                        <span id="total-cost" class="text-lg font-semibold mono text-apple-textLight dark:text-white">0 credits</span>
+                <!-- Power -->
+                <div>
+                    <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Power Level</h3>
+                    <div class="flex flex-col gap-2" id="power-group">
+                        <button data-power="light" class="power-btn w-full flex items-center justify-between px-4 py-3 rounded-xl border border-apple-borderLight dark:border-apple-borderDark bg-white dark:bg-black text-sm text-left transition-all">
+                            <span class="font-medium">Light</span>
+                            <span class="text-xs font-mono text-gray-400">2 CR</span>
+                        </button>
+                        <button data-power="standard" class="power-btn w-full flex items-center justify-between px-4 py-3 rounded-xl border-2 border-apple-blue bg-apple-blue/5 text-sm text-left transition-all">
+                            <span class="font-medium text-apple-blue">Standard</span>
+                            <span class="text-xs font-mono text-apple-blue">4 CR</span>
+                        </button>
+                        <button data-power="heavy" class="power-btn w-full flex items-center justify-between px-4 py-3 rounded-xl border border-apple-borderLight dark:border-apple-borderDark bg-white dark:bg-black text-sm text-left transition-all">
+                            <span class="font-medium">Heavy</span>
+                            <span class="text-xs font-mono text-gray-400">7 CR</span>
+                        </button>
                     </div>
-                    <button id="open-modal-btn" disabled class="w-full bg-solarglyph dark:bg-blue-600 disabled:bg-gray-300/50 dark:disabled:bg-white/10 disabled:text-gray-500 text-white py-3.5 rounded-xl font-medium hover:not-disabled:shadow-[0_4px_14px_rgba(37,99,235,0.3)] hover:not-disabled:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2">
-                        Review & Obfuscate <i data-lucide="arrow-right" class="w-4 h-4"></i>
-                    </button>
+                </div>
+
+                <!-- iOS Style Toggles -->
+                <div>
+                    <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Options</h3>
+                    <div class="bg-white dark:bg-black border border-apple-borderLight dark:border-apple-borderDark rounded-xl overflow-hidden">
+                        <label class="flex items-center justify-between px-4 py-3 border-b border-apple-borderLight dark:border-apple-borderDark cursor-pointer group">
+                            <span class="text-sm font-medium">String Encryption</span>
+                            <button type="button" class="ios-toggle relative w-12 h-7 rounded-full bg-apple-blue transition-colors focus:outline-none" data-toggle="strings">
+                                <span class="ios-knob absolute top-[2px] left-[2px] w-6 h-6 rounded-full bg-white shadow-sm transform translate-x-5"></span>
+                            </button>
+                        </label>
+                        <label class="flex items-center justify-between px-4 py-3 border-b border-apple-borderLight dark:border-apple-borderDark cursor-pointer group">
+                            <span class="text-sm font-medium">Control Flow</span>
+                            <button type="button" class="ios-toggle relative w-12 h-7 rounded-full bg-apple-blue transition-colors focus:outline-none" data-toggle="controlflow">
+                                <span class="ios-knob absolute top-[2px] left-[2px] w-6 h-6 rounded-full bg-white shadow-sm transform translate-x-5"></span>
+                            </button>
+                        </label>
+                        <label class="flex items-center justify-between px-4 py-3 cursor-pointer group">
+                            <span class="text-sm font-medium">Minify Output</span>
+                            <button type="button" class="ios-toggle relative w-12 h-7 rounded-full bg-apple-blue transition-colors focus:outline-none" data-toggle="minify">
+                                <span class="ios-knob absolute top-[2px] left-[2px] w-6 h-6 rounded-full bg-white shadow-sm transform translate-x-5"></span>
+                            </button>
+                        </label>
+                    </div>
                 </div>
             </div>
-        </div>
-    </main>
 
-    <!-- Receipt Confirmation Modal (Glass style) -->
-    <div id="receipt-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center modal-exit">
-        <div class="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-md" id="close-modal-bg"></div>
-        <div class="relative w-full max-w-md mx-4 glass-card rounded-[2rem] border border-gray-300/50 dark:border-white/10 shadow-2xl overflow-hidden transform transition-transform duration-300 scale-95" id="modal-content">
-            
-            <div class="p-6 pb-4 border-b border-gray-300/30 dark:border-white/10 flex items-center justify-between">
-                <h3 class="text-xl font-bold">Confirm Request</h3>
-                <button id="close-modal-btn" class="text-gray-400 hover:text-gray-700 dark:hover:text-white transition-colors">
-                    <i data-lucide="x" class="w-5 h-5"></i>
+            <!-- Fixed Action Footer -->
+            <div class="p-6 border-t border-apple-borderLight dark:border-apple-borderDark bg-white dark:bg-[#111113] shrink-0">
+                <div class="flex justify-between items-center mb-4">
+                    <span class="text-sm text-gray-500 font-medium">Estimated Cost</span>
+                    <span id="total-cost" class="text-xl font-semibold font-mono tracking-tight">0 CR</span>
+                </div>
+                <button id="open-modal-btn" disabled class="w-full bg-apple-blue hover:bg-blue-600 disabled:bg-gray-200 dark:disabled:bg-gray-800 disabled:text-gray-400 text-white py-3.5 rounded-xl font-medium transition-all duration-200 flex items-center justify-center gap-2">
+                    Review & Process
                 </button>
             </div>
+        </aside>
+    </main>
 
-            <div class="p-6 bg-white/20 dark:bg-black/20" id="modal-receipt-body">
-                <div id="modal-recipe-list" class="space-y-2 mb-6 max-h-48 overflow-y-auto"></div>
-                
-                <div class="bg-gray-100/50 dark:bg-white/5 rounded-xl p-4 border border-gray-300/30 dark:border-white/5">
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="text-sm text-gray-500 dark:text-gray-400">Total Cost</span>
-                        <span id="modal-total-cost" class="mono font-semibold">0 CR</span>
+    <!-- Apple-style Modal (Action Sheet / Dialog) -->
+    <div id="receipt-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center">
+        <div class="absolute inset-0 bg-black/30 dark:bg-black/50 backdrop-blur-sm transition-opacity" id="close-modal-bg"></div>
+        <div class="relative w-full max-w-sm mx-4 bg-white dark:bg-[#1c1c1e] rounded-2xl shadow-2xl overflow-hidden transition-all transform scale-95 opacity-0" id="modal-content">
+            
+            <div class="p-5 text-center border-b border-apple-borderLight dark:border-apple-borderDark relative">
+                <h3 class="text-lg font-semibold tracking-tight">Confirm Request</h3>
+                <p class="text-xs text-gray-500 mt-1">Review your files before spending credits.</p>
+            </div>
+
+            <div id="modal-receipt-body" class="p-0">
+                <div id="modal-recipe-list" class="max-h-48 overflow-y-auto px-5 py-2"></div>
+                <div class="bg-gray-50 dark:bg-black px-5 py-4 border-t border-apple-borderLight dark:border-apple-borderDark">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-sm text-gray-500">Total</span>
+                        <span id="modal-total-cost" class="font-mono font-semibold">0 CR</span>
                     </div>
-                    <div class="flex justify-between items-center text-sm">
-                        <span class="text-gray-500 dark:text-gray-400">Remaining Balance</span>
-                        <span id="modal-balance-after" class="mono text-solarglyph dark:text-blue-400"></span>
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs text-gray-400">Remaining</span>
+                        <span id="modal-balance-after" class="font-mono text-xs text-apple-blue"></span>
                     </div>
+                </div>
+                <!-- Action Buttons -->
+                <div class="flex border-t border-apple-borderLight dark:border-apple-borderDark">
+                    <button id="cancel-modal-btn" class="flex-1 py-4 text-sm font-medium text-gray-500 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors border-r border-apple-borderLight dark:border-apple-borderDark">Cancel</button>
+                    <button id="confirm-obfuscate-btn" class="flex-1 py-4 text-sm font-semibold text-apple-blue hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">Confirm</button>
                 </div>
             </div>
 
             <div class="p-10 hidden flex-col items-center justify-center text-center space-y-4" id="modal-waiting-body">
-                <i data-lucide="loader-2" class="w-12 h-12 text-solarglyph dark:text-blue-500 spin mx-auto"></i>
-                <h3 class="text-lg font-semibold">Obfuscating Scripts...</h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400">Please do not close this window.</p>
-            </div>
-
-            <div class="p-6 border-t border-gray-300/30 dark:border-white/10 flex gap-3" id="modal-footer">
-                <button id="cancel-modal-btn" class="flex-1 py-3 rounded-xl border border-gray-300/50 dark:border-white/10 font-medium text-gray-600 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-white/10 transition-colors">Cancel</button>
-                <button id="confirm-obfuscate-btn" class="flex-1 py-3 rounded-xl bg-solarglyph dark:bg-blue-600 text-white font-medium hover:shadow-lg transition-all flex items-center justify-center gap-2">
-                    <i data-lucide="check" class="w-4 h-4"></i> Confirm & Pay
-                </button>
+                <i data-lucide="loader-circle" class="w-10 h-10 text-apple-blue spin mx-auto"></i>
+                <h3 class="font-semibold">Processing...</h3>
             </div>
         </div>
     </div>
 
-    <site-footer></site-footer>
-
-    <script src="/shared/site.js"></script>
     <script>
+        lucide.createIcons();
+
         let scripts = [];
         let activeId = null;
         let settings = { power: 'standard', strings: true, controlflow: true, minify: true };
@@ -256,7 +268,7 @@
 
         function checkValidity(code) {
             if (!code.trim()) return { valid: false, reason: 'empty' };
-            return { valid: true }; // Simplified for UI logic
+            return { valid: true };
         }
 
         function estimateCost(script) {
@@ -275,13 +287,13 @@
             scripts.forEach(s => {
                 const tab = document.createElement('button');
                 const isActive = s.id === activeId;
-                tab.className = `group flex items-center gap-2 px-4 py-3 text-[13px] border-r border-gray-300/30 dark:border-white/10 shrink-0 transition-colors ${
-                    isActive ? 'text-apple-textLight dark:text-apple-textDark bg-white/60 dark:bg-white/[0.08] shadow-[inset_0_-2px_0_0_var(--tw-color-solarglyph)] dark:shadow-[inset_0_-2px_0_0_#3b82f6]' : 'text-gray-500 dark:text-gray-400 hover:bg-white/20 dark:hover:bg-white/[0.02] hover:text-apple-textLight dark:hover:text-apple-textDark'
+                tab.className = `group flex items-center gap-2 px-5 py-3 text-[13px] border-r border-apple-borderLight dark:border-apple-borderDark shrink-0 transition-colors font-mono ${
+                    isActive ? 'bg-white dark:bg-[#0a0a0c] text-black dark:text-white border-b-0' : 'text-gray-500 hover:text-gray-800 dark:hover:text-gray-200'
                 }`;
                 tab.innerHTML = `
-                    <span class="w-1.5 h-1.5 rounded-full ${s.valid ? 'bg-green-500 dark:bg-green-400 shadow-[0_0_5px_rgba(34,197,94,0.4)]' : (s.content ? 'bg-red-500 dark:bg-red-400' : 'bg-gray-400')}"></span>
-                    <span class="mono">${s.name}</span>
-                    ${scripts.length > 1 ? '<i data-lucide="x" class="w-3.5 h-3.5 ml-1 opacity-0 group-hover:opacity-60 hover:!opacity-100 hover:text-red-500 transition-all"></i>' : ''}
+                    <span class="w-2 h-2 rounded-full ${s.valid ? 'bg-green-500' : (s.content ? 'bg-red-500' : 'bg-gray-400')}"></span>
+                    <span>${s.name}</span>
+                    ${scripts.length > 1 ? `<i data-lucide="x" class="w-3.5 h-3.5 ml-2 opacity-0 group-hover:opacity-100 hover:text-red-500 transition-opacity"></i>` : ''}
                 `;
                 tab.addEventListener('click', (e) => {
                     if (e.target.closest('[data-lucide="x"]')) {
@@ -295,14 +307,14 @@
                 });
                 strip.appendChild(tab);
             });
-            if (window.lucide) lucide.createIcons();
+            lucide.createIcons();
         }
 
         function updateMainButtonState() {
             let total = 0;
             scripts.forEach(s => total += estimateCost(s));
             currentTotalCost = total;
-            el('total-cost').textContent = `${total} credits`;
+            el('total-cost').textContent = `${total} CR`;
             
             const btn = el('open-modal-btn');
             const anyValid = scripts.some(s => s.valid);
@@ -318,25 +330,24 @@
             const badge = el('validity-badge');
             const count = el('char-count');
             if (!active || !active.content) {
-                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-gray-400 shadow-sm shadow-gray-400/50"></span> Empty';
+                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-gray-400"></span> Empty';
                 count.textContent = '0 chars';
             } else if (active.valid) {
-                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-green-500 dark:bg-green-400 shadow-sm shadow-green-500/50"></span> Ready';
+                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span> Ready';
                 count.textContent = `${active.content.length} chars`;
             }
         }
 
         function renderAll() {
             scripts.forEach(s => {
-                const check = checkValidity(s.content);
-                s.valid = check.valid;
+                s.valid = checkValidity(s.content).valid;
             });
             renderTabs();
             renderEditor();
             updateMainButtonState();
         }
 
-        // Inputs
+        // Editor Input
         el('script-input').addEventListener('input', (e) => {
             const active = scripts.find(s => s.id === activeId);
             if (!active) return;
@@ -358,105 +369,107 @@
             if (files.length) renderAll();
         });
 
-        // Config UI
+        // Config UI (Power Level)
         document.querySelectorAll('.power-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 settings.power = btn.dataset.power;
                 document.querySelectorAll('.power-btn').forEach(b => {
-                    b.className = 'power-btn text-sm py-2 rounded-xl border border-gray-300/50 dark:border-white/10 text-gray-500 dark:text-gray-400 hover:bg-white/40 dark:hover:bg-white/5 transition-all';
+                    b.className = 'power-btn w-full flex items-center justify-between px-4 py-3 rounded-xl border border-apple-borderLight dark:border-apple-borderDark bg-white dark:bg-black text-sm text-left transition-all';
+                    b.querySelector('span:first-child').className = 'font-medium';
+                    b.querySelector('span:last-child').className = 'text-xs font-mono text-gray-400';
                 });
-                btn.className = 'power-btn text-sm py-2 rounded-xl border border-solarglyph dark:border-blue-400 bg-solarglyph/10 dark:bg-blue-400/10 text-solarglyph dark:text-blue-400 shadow-[0_0_10px_rgba(37,99,235,0.1)] transition-all';
+                btn.className = 'power-btn w-full flex items-center justify-between px-4 py-3 rounded-xl border-2 border-apple-blue bg-apple-blue/5 text-sm text-left transition-all';
+                btn.querySelector('span:first-child').className = 'font-medium text-apple-blue';
+                btn.querySelector('span:last-child').className = 'text-xs font-mono text-apple-blue';
                 updateMainButtonState();
             });
         });
 
-        document.querySelectorAll('[data-toggle]').forEach(sw => {
+        // Config UI (iOS Toggles)
+        document.querySelectorAll('.ios-toggle').forEach(sw => {
             sw.addEventListener('click', () => {
                 const key = sw.dataset.toggle;
                 settings[key] = !settings[key];
-                sw.classList.toggle('bg-solarglyph', settings[key]);
-                sw.classList.toggle('dark:bg-blue-500', settings[key]);
-                sw.classList.toggle('bg-gray-300', !settings[key]);
-                sw.classList.toggle('dark:bg-white/10', !settings[key]);
-                sw.querySelector('.toggle-knob').classList.toggle('translate-x-4', settings[key]);
-                sw.querySelector('.toggle-knob').classList.toggle('translate-x-0', !settings[key]);
+                
+                if (settings[key]) {
+                    sw.classList.add('bg-apple-blue');
+                    sw.classList.remove('bg-gray-300', 'dark:bg-gray-600');
+                    sw.querySelector('.ios-knob').classList.add('translate-x-5');
+                    sw.querySelector('.ios-knob').classList.remove('translate-x-0');
+                } else {
+                    sw.classList.remove('bg-apple-blue');
+                    sw.classList.add('bg-gray-300', 'dark:bg-gray-600');
+                    sw.querySelector('.ios-knob').classList.remove('translate-x-5');
+                    sw.querySelector('.ios-knob').classList.add('translate-x-0');
+                }
                 updateMainButtonState();
             });
         });
 
-        // Modal Flow
+        // Modal Logic
         const modal = el('receipt-modal');
         const modalContent = el('modal-content');
 
         el('open-modal-btn').addEventListener('click', () => {
             const list = el('modal-recipe-list');
             list.innerHTML = scripts.filter(s => s.valid).map(s => `
-                <div class="flex items-center justify-between py-2 border-b border-gray-300/20 dark:border-white/5 last:border-0">
-                    <span class="text-gray-700 dark:text-gray-300 mono text-[13px] truncate flex items-center gap-2"><i data-lucide="file-code-2" class="w-4 h-4 text-solarglyph dark:text-blue-400"></i> ${s.name}</span>
-                    <span class="text-gray-600 dark:text-gray-400 text-xs mono font-medium">${estimateCost(s)} CR</span>
+                <div class="flex items-center justify-between py-3 border-b border-apple-borderLight dark:border-apple-borderDark last:border-0">
+                    <span class="text-sm font-mono flex items-center gap-2"><i data-lucide="file-code" class="w-4 h-4 text-apple-blue"></i> ${s.name}</span>
+                    <span class="text-xs font-mono font-medium text-gray-500">${estimateCost(s)} CR</span>
                 </div>
             `).join('');
 
             el('modal-total-cost').textContent = `${currentTotalCost} CR`;
-            el('modal-balance-after').textContent = `${MOCK_BALANCE - currentTotalCost} CR`;
+            el('modal-balance-after').textContent = `${MOCK_BALANCE - currentTotalCost} CR remaining`;
 
             el('modal-receipt-body').classList.remove('hidden');
-            el('modal-footer').classList.remove('hidden');
             el('modal-waiting-body').classList.add('hidden');
             
-            modal.classList.remove('hidden', 'modal-exit');
-            modal.classList.add('modal-enter-active');
-            setTimeout(() => modalContent.classList.remove('scale-95'), 10);
-            if(window.lucide) lucide.createIcons();
+            modal.classList.remove('hidden');
+            // Small delay to allow display:block to apply before animating opacity/transform
+            setTimeout(() => {
+                modalContent.classList.remove('scale-95', 'opacity-0');
+                modalContent.classList.add('scale-100', 'opacity-100');
+            }, 10);
+            lucide.createIcons();
         });
 
         const closeModal = () => {
-            modalContent.classList.add('scale-95');
-            modal.classList.remove('modal-enter-active');
-            modal.classList.add('modal-exit-active');
-            setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('modal-exit-active'); }, 300);
+            modalContent.classList.remove('scale-100', 'opacity-100');
+            modalContent.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => { modal.classList.add('hidden'); }, 300);
         };
         el('cancel-modal-btn').addEventListener('click', closeModal);
-        el('close-modal-btn').addEventListener('click', closeModal);
         el('close-modal-bg').addEventListener('click', closeModal);
-
-        function mockObfuscate(code) {
-            return `-- Obfuscated by Solarglyph Engine v1\nlocal _env = getfenv();\nlocal function _obf()\n${code.split('\n').map(l => '  ' + l).join('\n')}\nend\n_obf();`;
-        }
 
         el('confirm-obfuscate-btn').addEventListener('click', async () => {
             el('modal-receipt-body').classList.add('hidden');
-            el('modal-footer').classList.add('hidden');
             el('modal-waiting-body').classList.remove('hidden');
             el('modal-waiting-body').classList.add('flex');
             
             await new Promise(r => setTimeout(r, 1200));
 
-            // Confetti
             confetti({
-                particleCount: 150,
-                spread: 80,
-                origin: { y: 0.4 },
-                colors: ['#2563eb', '#3b82f6', '#60a5fa', '#ffffff'],
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#0071e3', '#000000', '#ffffff'],
                 zIndex: 9999
             });
 
-            const validScripts = scripts.filter(s => s.valid);
-            const results = validScripts.map(s => ({ 
-                name: s.name, 
-                original: s.content,
-                output: mockObfuscate(s.content) 
-            }));
+            // Redirect simulation
+            setTimeout(() => { closeModal(); alert('Processing Complete! Redirect to results...'); }, 1800);
+        });
 
-            // Store in session for the next page
-            sessionStorage.setItem('sg_current_results', JSON.stringify(results));
-
-            // Redirect
-            setTimeout(() => { window.location.href = 'results.html'; }, 1800);
+        // Handle File Input processing
+        el('file-input').addEventListener('change', async (e) => {
+            const files = Array.from(e.target.files || []);
+            for (const file of files) { const text = await file.text(); newScript(file.name, text); }
+            if (files.length) renderAll();
+            e.target.value = ''; // reset
         });
 
         renderAll();
-        if (window.lucide) lucide.createIcons();
     </script>
 </body>
 </html>
