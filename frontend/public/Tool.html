@@ -50,46 +50,100 @@
         .spin { animation: spin 0.8s linear infinite; }
         .drop-active { outline: 2px dashed #5b9dff; outline-offset: -8px; background: rgba(91,157,255,0.05); }
     </style>
+.glass-card {
+            background: rgba(15, 23, 42, 0.45);
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 20px 50px -20px rgba(2, 6, 23, 0.85);
+        }
+        .brand-panel {
+            background: rgba(15, 23, 42, 0.58);
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 18px 45px -24px rgba(7,48,75,0.9);
+        }
+        .brand-btn {
+            background: linear-gradient(135deg, #0d3b5d 0%, #07304b 100%);
+            border: 1px solid rgba(125, 211, 252, 0.35);
+            box-shadow: 0 12px 28px -18px rgba(59,130,246,0.9);
+        }
+        .brand-btn:hover {
+            background: linear-gradient(135deg, #124b72 0%, #0a3a59 100%);
+        }
+        .brand-outline {
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.02);
+        }
+        .power-btn.is-active {
+            background: rgba(96, 165, 250, 0.12);
+            border-color: rgba(96, 165, 250, 0.45);
+            color: #dbeafe;
+            box-shadow: inset 0 0 0 1px rgba(96,165,250,0.2);
+        }
+        .toggle-switch {
+            background: rgba(148, 163, 184, 0.3);
+        }
+        .toggle-switch.active {
+            background: linear-gradient(135deg, rgba(14,116,144,0.9), rgba(59,130,246,0.9));
+        }
+        .toggle-knob {
+            background: white;
+        }
+        .brand-input,
+        .brand-select {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: #e5eefb;
+        }
+        .brand-input:focus,
+        .brand-select:focus {
+            border-color: rgba(96, 165, 250, 0.5);
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+            outline: none;
+        }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.25); border-radius: 9999px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+    </style>
 </head>
-<body class="text-gray-200 overflow-x-hidden">
+<body class="text-apple-textLight dark:text-apple-textDark overflow-x-hidden bg-[#f5f5f7] dark:bg-[#000000] transition-colors duration-500">
+    <div class="fixed inset-0 z-[-2] bg-cover bg-center" style="background-image: url('https://www.solarglyphlabs.com/images/Backgrounds/SolarGlyphCampus.png');"></div>
+    <div class="fixed inset-0 z-[-1] bg-white/80 dark:bg-black/75 backdrop-blur-[24px] transition-colors duration-500"></div>
 
     <site-nav page="tool"></site-nav>
 
-    <main class="relative z-10 pt-20 min-h-screen flex flex-col">
+    <main class="relative z-10 pt-24 pb-8 px-4 min-h-screen max-w-7xl mx-auto flex flex-col">
 
-        <!-- Top bar: engine identity + balance -->
-        <div class="border-b border-white/[0.06] px-5 py-3 flex items-center justify-between gap-4">
-            <div class="flex items-center gap-3">
-                <i data-lucide="terminal-square" class="w-4 h-4 text-blue-400"></i>
-                <h1 class="text-sm font-medium text-gray-300">Obfuscate</h1>
+        <div class="mb-6 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+            <div>
+                <p class="text-xs uppercase tracking-[0.22em] text-solarglyph dark:text-blue-300 font-semibold">Solarglyph Labs</p>
+                <h1 class="text-3xl sm:text-4xl font-bold tracking-tight text-gray-900 dark:text-white">Script Obfuscator</h1>
             </div>
-            <div class="flex items-center gap-4 text-sm">
-                <span class="text-gray-500">Balance</span>
-                <span id="balance-display" class="mono text-gray-200 font-medium">40 credits</span>
+            <div class="flex items-center gap-4 text-sm brand-panel rounded-full px-4 py-2.5">
+                <span class="text-gray-600 dark:text-gray-400">Balance</span>
+                <span id="balance-display" class="mono text-gray-900 dark:text-white font-semibold">40 credits</span>
             </div>
         </div>
 
-        <div class="flex-1 grid grid-cols-1 lg:grid-cols-[1fr_320px]">
+        <div class="flex-1 grid grid-cols-1 xl:grid-cols-[1.5fr_360px] gap-6">
 
             <!-- LEFT: Editor -->
-            <div class="flex flex-col border-r border-white/[0.06] min-h-[60vh]">
+            <div class="brand-panel rounded-[1.75rem] overflow-hidden min-h-[60vh]">
 
                 <!-- Batch tab strip -->
-                <div class="flex items-stretch border-b border-white/[0.06] px-2">
+                <div class="flex items-stretch border-b border-white/[0.06] px-3 py-2 bg-white/[0.02]">
                     <div id="tab-strip" class="tab-strip flex items-stretch overflow-x-auto"></div>
-                    <button id="add-tab-btn" title="Add script" class="flex items-center px-3 text-gray-500 hover:text-blue-400 transition-colors shrink-0">
+                    <button id="add-tab-btn" title="Add script" class="flex items-center px-3 text-gray-500 hover:text-solarglyph dark:hover:text-blue-300 transition-colors shrink-0">
                         <i data-lucide="plus" class="w-4 h-4"></i>
                     </button>
                     <div class="flex-1"></div>
-                    <button id="import-btn" class="flex items-center gap-1.5 px-3 text-xs text-gray-500 hover:text-gray-200 transition-colors shrink-0">
+                    <button id="import-btn" class="flex items-center gap-1.5 px-3 text-xs text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors shrink-0 brand-outline rounded-lg">
                         <i data-lucide="upload" class="w-3.5 h-3.5"></i> Import
                     </button>
                     <input type="file" id="file-input" accept=".lua,.luau,.txt" multiple class="hidden">
                 </div>
 
                 <!-- Editor canvas -->
-                <div id="drop-zone" class="editor-canvas flex-1 relative">
-                    <textarea id="script-input" class="script-input w-full h-full min-h-[420px] resize-none outline-none px-6 py-5 text-gray-100"
+                <div id="drop-zone" class="editor-canvas flex-1 relative border-t border-white/[0.04]">
+                    <textarea id="script-input" class="script-input w-full h-full min-h-[420px] resize-none outline-none px-6 py-5 text-gray-900 dark:text-gray-100 bg-transparent"
                         placeholder="-- Paste a Luau script, or drag a .lua file in&#10;&#10;local function greet(name)&#10;    print('Hello, ' .. name)&#10;end"
                         spellcheck="false"></textarea>
                     <div id="drop-hint" class="hidden absolute inset-0 items-center justify-center pointer-events-none">
@@ -105,11 +159,11 @@
             </div>
 
             <!-- RIGHT: Engine + toggle rail -->
-            <div class="flex flex-col p-5 space-y-7">
+            <div class="brand-panel rounded-[1.75rem] p-5 space-y-7">
 
                 <div>
                     <p class="text-xs uppercase tracking-wide text-gray-500 mb-2.5">Engine</p>
-                    <select id="engine-select" class="w-full bg-white/[0.03] border border-white/10 rounded-lg px-3 py-2.5 text-sm text-gray-200 outline-none focus:border-blue-400/50 transition-colors">
+                    <select id="engine-select" class="brand-select w-full rounded-xl px-3 py-2.5 text-sm outline-none transition-colors">
                         <option value="v1">Engine v1 — Standard Luau</option>
                     </select>
                     <p class="text-xs text-gray-500 mt-2 leading-relaxed">Identifier renaming, string encryption, and control-flow obfuscation for standard Luau scripts.</p>
@@ -119,7 +173,7 @@
                     <p class="text-xs uppercase tracking-wide text-gray-500 mb-2.5">Power level</p>
                     <div class="grid grid-cols-3 gap-1.5" id="power-group">
                         <button data-power="light" class="power-btn text-sm py-2 rounded-lg border border-white/10 text-gray-400 hover:text-gray-200 transition-colors">Light</button>
-                        <button data-power="standard" class="power-btn text-sm py-2 rounded-lg border border-blue-400/40 bg-blue-400/10 text-blue-300">Standard</button>
+                        <button data-power="standard" class="power-btn is-active text-sm py-2 rounded-lg border border-blue-400/40 bg-blue-400/10 text-blue-300">Standard</button>
                         <button data-power="heavy" class="power-btn text-sm py-2 rounded-lg border border-white/10 text-gray-400 hover:text-gray-200 transition-colors">Heavy</button>
                     </div>
                 </div>
@@ -129,24 +183,24 @@
 
                     <label class="flex items-center justify-between cursor-pointer">
                         <span class="text-sm text-gray-300">String encryption</span>
-                        <span class="toggle-switch relative inline-block w-9 h-5 rounded-full bg-blue-500" data-toggle="strings">
-                            <span class="toggle-knob absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transform translate-x-4"></span>
+                        <span class="toggle-switch active relative inline-block w-9 h-5 rounded-full" data-toggle="strings">
+                            <span class="toggle-knob absolute top-0.5 left-0.5 w-4 h-4 rounded-full transform translate-x-4"></span>
                         </span>
                         <input type="checkbox" class="hidden" checked>
                     </label>
 
                     <label class="flex items-center justify-between cursor-pointer">
                         <span class="text-sm text-gray-300">Control-flow obfuscation</span>
-                        <span class="toggle-switch relative inline-block w-9 h-5 rounded-full bg-blue-500" data-toggle="controlflow">
-                            <span class="toggle-knob absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transform translate-x-4"></span>
+                        <span class="toggle-switch active relative inline-block w-9 h-5 rounded-full" data-toggle="controlflow">
+                            <span class="toggle-knob absolute top-0.5 left-0.5 w-4 h-4 rounded-full transform translate-x-4"></span>
                         </span>
                         <input type="checkbox" class="hidden" checked>
                     </label>
 
                     <label class="flex items-center justify-between cursor-pointer">
                         <span class="text-sm text-gray-300">Minify output</span>
-                        <span class="toggle-switch relative inline-block w-9 h-5 rounded-full bg-blue-500" data-toggle="minify">
-                            <span class="toggle-knob absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transform translate-x-4"></span>
+                        <span class="toggle-switch active relative inline-block w-9 h-5 rounded-full" data-toggle="minify">
+                            <span class="toggle-knob absolute top-0.5 left-0.5 w-4 h-4 rounded-full transform translate-x-4"></span>
                         </span>
                         <input type="checkbox" class="hidden" checked>
                     </label>
@@ -156,18 +210,18 @@
         </div>
 
         <!-- BOTTOM: Recipe / cost strip -->
-        <div class="sticky bottom-0 border-t border-white/[0.06] bg-[#0a0c10]/95 backdrop-blur px-5 py-4">
+        <div class="sticky bottom-0 border-t border-white/[0.06] bg-white/80 dark:bg-[#0a0c10]/95 backdrop-blur px-5 py-4">
             <div class="max-w-3xl mx-auto">
                 <div id="recipe-list" class="space-y-1.5 mb-3 max-h-40 overflow-y-auto"></div>
                 <div class="flex items-center justify-between border-t border-white/[0.06] pt-3">
                     <div class="text-sm">
                         <span class="text-gray-500">Total</span>
-                        <span id="total-cost" class="mono text-gray-100 font-medium ml-2">0 credits</span>
+                        <span id="total-cost" class="mono text-gray-900 dark:text-gray-100 font-medium ml-2">0 credits</span>
                         <span class="text-gray-600 mx-2">·</span>
                         <span id="balance-after" class="text-gray-500 text-xs"></span>
                     </div>
                     <button id="submit-btn" disabled
-                        class="flex items-center gap-2 bg-blue-500 disabled:bg-white/10 disabled:text-gray-500 text-white font-medium px-6 py-2.5 rounded-full transition-all duration-300 disabled:cursor-not-allowed hover:not-disabled:shadow-lg hover:not-disabled:shadow-blue-500/30">
+                        class="flex items-center gap-2 brand-btn disabled:bg-white/10 disabled:text-gray-500 text-white font-medium px-6 py-2.5 rounded-full transition-all duration-300 disabled:cursor-not-allowed hover:not-disabled:shadow-lg hover:not-disabled:shadow-blue-500/30">
                         <i data-lucide="loader-2" class="w-4 h-4 spin hidden" id="submit-spinner"></i>
                         <span id="submit-label">Obfuscate</span>
                     </button>
@@ -179,19 +233,19 @@
         <div id="output-panel" class="hidden border-t border-white/[0.06] px-5 py-6">
             <div class="max-w-3xl mx-auto space-y-4">
                 <div class="flex items-center justify-between">
-                    <h2 class="text-sm font-medium text-gray-300 flex items-center gap-2">
+                    <h2 class="text-sm font-medium text-gray-900 dark:text-gray-300 flex items-center gap-2">
                         <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i> Output
                     </h2>
                     <div class="flex items-center gap-2">
-                        <button id="copy-output-btn" class="flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-200 px-3 py-1.5 rounded-lg border border-white/10 transition-colors">
+                        <button id="copy-output-btn" class="flex items-center gap-1.5 text-xs text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white px-3 py-1.5 rounded-lg border border-white/10 bg-white/30 dark:bg-white/[0.02] transition-colors">
                             <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy
                         </button>
-                        <button id="export-output-btn" class="flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-200 px-3 py-1.5 rounded-lg border border-white/10 transition-colors">
+                        <button id="export-output-btn" class="flex items-center gap-1.5 text-xs text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white px-3 py-1.5 rounded-lg border border-white/10 bg-white/30 dark:bg-white/[0.02] transition-colors">
                             <i data-lucide="download" class="w-3.5 h-3.5"></i> Export
                         </button>
                     </div>
                 </div>
-                <pre id="output-text" class="mono text-xs text-gray-300 bg-white/[0.02] border border-white/[0.06] rounded-xl p-4 overflow-x-auto whitespace-pre-wrap"></pre>
+                <pre id="output-text" class="mono text-xs text-gray-800 dark:text-gray-300 bg-white/[0.04] border border-white/[0.06] rounded-xl p-4 overflow-x-auto whitespace-pre-wrap"></pre>
             </div>
         </div>
 
