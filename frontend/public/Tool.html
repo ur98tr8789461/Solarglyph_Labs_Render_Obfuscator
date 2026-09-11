@@ -1,901 +1,405 @@
-
+<!DOCTYPE html>
 <html lang="en" class="dark style-smooth">
-
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Obfuscate | Solarglyph Labs</title>
-
     <link rel="icon" href="https://www.solarglyphlabs.com/images/Logo/SolarglyphLabsLogoCut.png" type="image/png">
 
-
-
     <link rel="preconnect" href="https://fonts.googleapis.com">
-
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
-
-
     <script src="https://cdn.tailwindcss.com"></script>
-
     <script src="https://unpkg.com/lucide@latest"></script>
-
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
-
-
     <!-- External Shared Theme/Components (Matching Dashboard) -->
-
     <script src="/shared/theme-config.js"></script>
-
     <link rel="stylesheet" href="/shared/styles.css">
-
     <script src="/shared/components.js" defer></script>
 
-
-
     <style>
-
         /* Minimal Scrollbars */
-
         ::-webkit-scrollbar { width: 8px; height: 8px; }
-
         ::-webkit-scrollbar-track { background: transparent; }
-
         ::-webkit-scrollbar-thumb { background: rgba(120,130,150,0.2); border-radius: 8px; }
-
         ::-webkit-scrollbar-thumb:hover { background-color: rgba(120,130,150,0.4); }
-
         
-
         textarea.script-input {
-
             tab-size: 4;
-
             background: transparent;
-
         }
-
         textarea.script-input::placeholder { color: #9CA3AF80; }
-
         .dark textarea.script-input::placeholder { color: #6B7280; }
-
         
-
         @keyframes spin { to { transform: rotate(360deg); } }
-
         .spin { animation: spin 0.8s linear infinite; }
-
         
-
         /* Modal Transitions */
-
         .modal-enter { opacity: 0; transform: scale(0.95); }
-
         .modal-enter-active { opacity: 1; transform: scale(1); transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
-
         .modal-exit { opacity: 1; transform: scale(1); }
-
         .modal-exit-active { opacity: 0; transform: scale(0.95); pointer-events: none; transition: all 0.2s ease-in; }
 
-
-
         /* iOS Toggle Switch */
-
         .ios-toggle { transition: background-color 0.3s ease; }
-
         .ios-knob { transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
-
     </style>
-
 </head>
-
 <body class="text-apple-textLight dark:text-apple-textDark transition-colors duration-500 overflow-x-hidden">
-
     
-
     <!-- Original Solarglyph Brand Background -->
-
     <div class="fixed inset-0 z-[-2] bg-cover bg-center" style="background-image: url('https://www.solarglyphlabs.com/images/Backgrounds/SolarGlyphCampus.png');"></div>
-
     <div class="fixed inset-0 z-[-1] bg-white/80 dark:bg-black/75 backdrop-blur-[24px] transition-colors duration-500"></div>
 
-
-
     <!-- Web Component Navigation -->
-
     <site-nav page="tool"></site-nav>
 
-
-
     <!-- Full-Width App Workspace -->
-
     <main class="relative z-10 min-h-screen pt-24 pb-16 w-full flex flex-col lg:flex-row">
-
         
-
         <!-- LEFT COLUMN: EDITOR -->
-
         <div class="flex-1 flex flex-col relative min-h-[600px] lg:min-h-0 lg:border-r border-gray-300/40 dark:border-white/10">
-
             
-
             <!-- Header -->
-
             <div class="px-4 sm:px-8 lg:px-12 py-6 shrink-0 border-b border-gray-300/40 dark:border-white/10">
-
                 <h1 class="text-2xl font-bold tracking-tight mb-1">Obfuscator Engine</h1>
-
                 <p class="text-gray-600 dark:text-gray-400 text-sm">Secure your Luau scripts before deployment.</p>
-
             </div>
-
-
 
             <!-- Drag and Drop Overlay -->
-
             <div id="drop-overlay" class="absolute inset-0 z-20 hidden bg-white/60 dark:bg-black/60 backdrop-blur-md border-2 border-dashed border-solarglyph dark:border-blue-400 flex items-center justify-center pointer-events-none transition-all">
-
                 <div class="flex flex-col items-center gap-3 text-solarglyph dark:text-blue-400">
-
                     <i data-lucide="file-down" class="w-12 h-12"></i>
-
                     <span class="font-medium tracking-wide text-lg">Drop script here to load</span>
-
                 </div>
-
             </div>
-
-
 
             <!-- Tabs -->
-
             <div class="flex items-stretch border-b border-gray-300/40 dark:border-white/10 bg-black/5 dark:bg-white/5 h-12 shrink-0">
-
                 <div id="tab-strip" class="tab-strip flex items-stretch overflow-x-auto h-full scrollbar-none"></div>
-
                 <button id="add-tab-btn" class="flex items-center justify-center w-12 text-gray-500 hover:text-solarglyph dark:hover:text-blue-400 transition-colors shrink-0 h-full border-l border-gray-300/40 dark:border-white/10">
-
                     <i data-lucide="plus" class="w-4 h-4"></i>
-
                 </button>
-
                 <div class="flex-1"></div>
-
                 <button id="import-btn" class="flex items-center gap-2 px-5 text-xs font-medium text-gray-600 dark:text-gray-300 hover:text-solarglyph dark:hover:text-blue-400 transition-colors shrink-0 h-full border-l border-gray-300/40 dark:border-white/10" onclick="document.getElementById('file-input').click()">
-
                     <i data-lucide="upload" class="w-4 h-4"></i> Import File
-
                 </button>
-
                 <input type="file" id="file-input" accept=".lua,.luau,.txt" multiple class="hidden">
-
             </div>
-
-
 
             <!-- Text Area -->
-
             <div id="drop-zone" class="relative flex-1 group">
-
                 <textarea id="script-input" class="script-input absolute inset-0 w-full h-full resize-none outline-none px-4 sm:px-8 lg:px-12 py-6 font-mono text-[13.5px] leading-relaxed transition-colors"
-
                     placeholder="-- Paste a Luau script here&#10;&#10;local function greet(name)&#10;    print('Hello, ' .. name)&#10;end" spellcheck="false"></textarea>
-
             </div>
-
             
-
             <!-- Editor Footer -->
-
             <div class="h-10 flex items-center justify-between px-4 sm:px-8 lg:px-12 bg-black/5 dark:bg-white/5 border-t border-gray-300/40 dark:border-white/10 text-[10px] uppercase tracking-widest font-mono font-medium text-gray-500 shrink-0">
-
                 <div id="validity-badge" class="flex items-center gap-2">
-
                     <span class="w-2 h-2 rounded-full bg-gray-400 shadow-sm"></span> Empty
-
                 </div>
-
                 <div class="flex items-center gap-6">
-
                     <span>UTF-8</span>
-
                     <span>Luau</span>
-
                     <span id="char-count">0 chars</span>
-
                 </div>
-
             </div>
-
         </div>
 
-
-
         <!-- RIGHT COLUMN: SETTINGS -->
-
         <aside class="w-full lg:w-[360px] flex flex-col shrink-0 h-[600px] lg:h-auto z-10 border-t lg:border-t-0 border-gray-300/40 dark:border-white/10">
-
             <div class="flex-1 overflow-y-auto px-6 sm:px-8 py-6 space-y-8">
-
                 
-
                 <!-- Engine -->
-
                 <div>
-
                     <h3 class="text-[11px] uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2.5 font-semibold">Engine</h3>
-
                     <div class="relative">
-
                         <select class="w-full appearance-none bg-white/50 dark:bg-black/30 border border-gray-300/50 dark:border-white/10 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-solarglyph dark:focus:ring-blue-400 transition-all cursor-pointer">
-
                             <option>v1 — Standard Luau</option>
-
                         </select>
-
                         <i data-lucide="chevron-down" class="w-4 h-4 absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"></i>
-
                     </div>
-
                 </div>
-
-
 
                 <!-- Power -->
-
                 <div>
-
                     <h3 class="text-[11px] uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2.5 font-semibold">Power Level</h3>
-
                     <div class="flex flex-col gap-2" id="power-group">
-
                         <button data-power="light" class="power-btn w-full flex items-center justify-between px-4 py-3 rounded-xl border border-gray-300/50 dark:border-white/10 hover:bg-white/40 dark:hover:bg-white/5 text-sm text-left transition-all">
-
                             <span class="font-medium">Light</span>
-
                             <span class="text-xs font-mono text-gray-500">2 CR</span>
-
                         </button>
-
                         <button data-power="standard" class="power-btn w-full flex items-center justify-between px-4 py-3 rounded-xl border border-solarglyph dark:border-blue-400 bg-solarglyph/10 dark:bg-blue-400/10 shadow-[0_0_10px_rgba(37,99,235,0.1)] text-sm text-left transition-all">
-
                             <span class="font-medium text-solarglyph dark:text-blue-400">Standard</span>
-
                             <span class="text-xs font-mono text-solarglyph dark:text-blue-400">4 CR</span>
-
                         </button>
-
                         <button data-power="heavy" class="power-btn w-full flex items-center justify-between px-4 py-3 rounded-xl border border-gray-300/50 dark:border-white/10 hover:bg-white/40 dark:hover:bg-white/5 text-sm text-left transition-all">
-
                             <span class="font-medium">Heavy</span>
-
                             <span class="text-xs font-mono text-gray-500">7 CR</span>
-
                         </button>
-
                     </div>
-
                 </div>
-
-
 
                 <!-- Glass iOS Style Toggles -->
-
                 <div>
-
                     <h3 class="text-[11px] uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2.5 font-semibold">Toggles</h3>
-
                     <div class="bg-white/40 dark:bg-black/20 border border-gray-300/50 dark:border-white/10 rounded-xl overflow-hidden backdrop-blur-sm">
-
                         <label class="flex items-center justify-between px-4 py-3 border-b border-gray-300/30 dark:border-white/5 cursor-pointer group hover:bg-white/50 dark:hover:bg-white/5 transition-colors">
-
                             <span class="text-sm font-medium group-hover:text-solarglyph dark:group-hover:text-blue-400 transition-colors">String Encryption</span>
-
                             <button type="button" class="ios-toggle relative w-12 h-7 rounded-full bg-solarglyph dark:bg-blue-500 transition-colors focus:outline-none" data-toggle="strings">
-
                                 <span class="ios-knob absolute top-[2px] left-[2px] w-6 h-6 rounded-full bg-white shadow-sm transform translate-x-5"></span>
-
                             </button>
-
                         </label>
-
                         <label class="flex items-center justify-between px-4 py-3 border-b border-gray-300/30 dark:border-white/5 cursor-pointer group hover:bg-white/50 dark:hover:bg-white/5 transition-colors">
-
                             <span class="text-sm font-medium group-hover:text-solarglyph dark:group-hover:text-blue-400 transition-colors">Control Flow</span>
-
                             <button type="button" class="ios-toggle relative w-12 h-7 rounded-full bg-solarglyph dark:bg-blue-500 transition-colors focus:outline-none" data-toggle="controlflow">
-
                                 <span class="ios-knob absolute top-[2px] left-[2px] w-6 h-6 rounded-full bg-white shadow-sm transform translate-x-5"></span>
-
                             </button>
-
                         </label>
-
                         <label class="flex items-center justify-between px-4 py-3 cursor-pointer group hover:bg-white/50 dark:hover:bg-white/5 transition-colors">
-
                             <span class="text-sm font-medium group-hover:text-solarglyph dark:group-hover:text-blue-400 transition-colors">Minify Output</span>
-
                             <button type="button" class="ios-toggle relative w-12 h-7 rounded-full bg-solarglyph dark:bg-blue-500 transition-colors focus:outline-none" data-toggle="minify">
-
                                 <span class="ios-knob absolute top-[2px] left-[2px] w-6 h-6 rounded-full bg-white shadow-sm transform translate-x-5"></span>
-
                             </button>
-
                         </label>
-
                     </div>
-
                 </div>
-
             </div>
-
-
 
             <!-- Fixed Action Footer -->
-
             <div class="p-6 border-t border-gray-300/40 dark:border-white/10 bg-black/5 dark:bg-white/5 shrink-0 backdrop-blur-md">
-
                 <div class="flex justify-between items-center mb-4">
-
                     <span class="text-sm text-gray-600 dark:text-gray-400 font-medium">Total Cost</span>
-
                     <span id="total-cost" class="text-xl font-semibold font-mono tracking-tight text-gray-900 dark:text-white">0 CR</span>
-
                 </div>
-
                 <button id="open-modal-btn" disabled class="w-full bg-solarglyph dark:bg-blue-600 disabled:bg-gray-300/50 dark:disabled:bg-white/10 disabled:text-gray-500 text-white py-3.5 rounded-xl font-medium hover:not-disabled:shadow-[0_4px_14px_rgba(37,99,235,0.3)] hover:not-disabled:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2">
-
                     Review & Process <i data-lucide="arrow-right" class="w-4 h-4"></i>
-
                 </button>
-
             </div>
-
         </aside>
-
     </main>
-
-
 
     <site-footer></site-footer>
 
-
-
     <script src="/shared/site.js"></script>
 
-
-
     <!-- Glass Modal -->
-
     <div id="receipt-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center">
-
         <div class="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-md transition-opacity" id="close-modal-bg"></div>
-
         <div class="relative w-full max-w-md mx-4 glass-card rounded-[2rem] shadow-2xl overflow-hidden transition-all transform scale-95 opacity-0" id="modal-content">
-
             
-
             <div class="p-6 border-b border-gray-300/30 dark:border-white/10 flex items-center justify-between">
-
                 <h3 class="text-xl font-bold tracking-tight">Confirm Request</h3>
-
                 <button id="close-modal-btn" class="w-8 h-8 flex items-center justify-center rounded-full bg-black/5 dark:bg-white/10 text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors">
-
                     <i data-lucide="x" class="w-4 h-4"></i>
-
                 </button>
-
             </div>
-
-
 
             <div id="modal-receipt-body">
-
                 <div class="p-6 pb-4">
-
                     <div id="modal-recipe-list" class="space-y-1 mb-6 max-h-48 overflow-y-auto pr-2"></div>
-
                     
-
                     <div class="bg-black/5 dark:bg-white/5 rounded-xl p-4 border border-gray-300/30 dark:border-white/5">
-
                         <div class="flex justify-between items-center mb-2">
-
                             <span class="text-sm text-gray-600 dark:text-gray-400">Total Cost</span>
-
                             <span id="modal-total-cost" class="font-mono font-semibold">0 CR</span>
-
                         </div>
-
                         <div class="flex justify-between items-center">
-
                             <span class="text-sm text-gray-600 dark:text-gray-400">Remaining Balance</span>
-
                             <span id="modal-balance-after" class="font-mono text-sm text-solarglyph dark:text-blue-400"></span>
-
                         </div>
-
                     </div>
-
                 </div>
-
                 
-
                 <div class="flex p-6 pt-2 gap-3 border-t border-gray-300/30 dark:border-white/10 mt-2">
-
                     <button id="cancel-modal-btn" class="flex-1 py-3 rounded-xl border border-gray-300/50 dark:border-white/10 font-medium text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/10 transition-colors">Cancel</button>
-
                     <button id="confirm-obfuscate-btn" class="flex-1 py-3 rounded-xl bg-solarglyph dark:bg-blue-600 text-white font-medium hover:shadow-lg transition-all flex items-center justify-center gap-2">
-
                         <i data-lucide="check" class="w-4 h-4"></i> Confirm & Pay
-
                     </button>
-
                 </div>
-
             </div>
-
-
 
             <div class="p-10 hidden flex-col items-center justify-center text-center space-y-4 min-h-[300px]" id="modal-waiting-body">
-
                 <i data-lucide="loader-2" class="w-12 h-12 text-solarglyph dark:text-blue-400 spin mx-auto"></i>
-
                 <h3 class="text-lg font-semibold">Obfuscating Scripts...</h3>
-
                 <p class="text-sm text-gray-500 dark:text-gray-400">Please do not close this window.</p>
-
             </div>
-
         </div>
-
     </div>
-
-
 
     <script>
         lucide.createIcons();
 
         let scripts = [];
         let activeId = null;
-        let settings = {
-            power: 'standard',
-            strings: true,
-            controlflow: true,
-            minify: true
-        };
-
+        let settings = { power: 'standard', strings: true, controlflow: true, minify: true };
         let currentTotalCost = 0;
-
-        // Temporary balance for the frontend prototype.
-        // Replace this with your real account/credit API.
         const MOCK_BALANCE = 40;
 
-        // Where the results page lives.
-        const RESULTS_PAGE = '/obfuscate/results.html';
-        const STORAGE_PREFIX = 'obfuscation:';
-
         const el = (id) => document.getElementById(id);
-
-        function uid() {
-            if (window.crypto && typeof crypto.randomUUID === 'function') {
-                return crypto.randomUUID().replaceAll('-', '').slice(0, 12);
-            }
-
-            return Math.random().toString(36).slice(2, 14);
-        }
-
-        function escapeHtml(value) {
-            return String(value)
-                .replaceAll('&', '&amp;')
-                .replaceAll('<', '&lt;')
-                .replaceAll('>', '&gt;')
-                .replaceAll('"', '&quot;')
-                .replaceAll("'", '&#039;');
-        }
+        function uid() { return Math.random().toString(36).slice(2, 9); }
 
         function newScript(name, content = '') {
-            const script = {
-                id: uid(),
-                name,
-                content,
-                valid: content.trim().length > 0
-            };
-
-            scripts.push(script);
-            activeId = script.id;
-
-            return script;
+            const s = { id: uid(), name, content, valid: content.trim().length > 0 };
+            scripts.push(s);
+            activeId = s.id;
+            return s;
         }
 
         newScript('main.lua');
 
         function checkValidity(code) {
-            if (!code.trim()) {
-                return {
-                    valid: false,
-                    reason: 'empty'
-                };
-            }
-
-            return {
-                valid: true,
-                reason: null
-            };
+            if (!code.trim()) return { valid: false, reason: 'empty' };
+            return { valid: true };
         }
 
         function estimateCost(script) {
             if (!script.valid) return 0;
-
-            const base = {
-                light: 2,
-                standard: 4,
-                heavy: 7
-            }[settings.power];
-
+            const base = { light: 2, standard: 4, heavy: 7 }[settings.power];
             const sizeFactor = Math.ceil(script.content.length / 800);
-
             let cost = base + sizeFactor;
-
             if (settings.strings) cost += 1;
             if (settings.controlflow) cost += 2;
-
             return cost;
         }
 
         function renderTabs() {
             const strip = el('tab-strip');
             strip.innerHTML = '';
-
-            scripts.forEach((script) => {
+            scripts.forEach(s => {
                 const tab = document.createElement('button');
-                const isActive = script.id === activeId;
-
+                const isActive = s.id === activeId;
                 tab.className = `group flex items-center gap-2 px-5 py-3 text-[13px] border-r border-gray-300/40 dark:border-white/10 shrink-0 transition-colors font-mono ${
-                    isActive
-                        ? 'bg-white/60 dark:bg-white/10 text-gray-900 dark:text-white shadow-[inset_0_-2px_0_0_var(--tw-color-solarglyph)] dark:shadow-[inset_0_-2px_0_0_#60a5fa]'
-                        : 'text-gray-500 dark:text-gray-400 hover:bg-black/5 dark:hover:bg-white/5 hover:text-gray-800 dark:hover:text-gray-200'
+                    isActive ? 'bg-white/60 dark:bg-white/10 text-gray-900 dark:text-white shadow-[inset_0_-2px_0_0_var(--tw-color-solarglyph)] dark:shadow-[inset_0_-2px_0_0_#60a5fa]' : 'text-gray-500 dark:text-gray-400 hover:bg-black/5 dark:hover:bg-white/5 hover:text-gray-800 dark:hover:text-gray-200'
                 }`;
-
                 tab.innerHTML = `
-                    <span class="w-2 h-2 rounded-full ${
-                        script.valid
-                            ? 'bg-green-500 shadow-[0_0_5px_rgba(34,197,94,0.4)]'
-                            : (script.content ? 'bg-red-500' : 'bg-gray-400')
-                    }"></span>
-
-                    <span>${escapeHtml(script.name)}</span>
-
-                    ${scripts.length > 1 ? `
-                        <i data-lucide="x"
-                           class="w-3.5 h-3.5 ml-2 opacity-0 group-hover:opacity-100 hover:!text-red-500 transition-opacity"></i>
-                    ` : ''}
+                    <span class="w-2 h-2 rounded-full ${s.valid ? 'bg-green-500 shadow-[0_0_5px_rgba(34,197,94,0.4)]' : (s.content ? 'bg-red-500' : 'bg-gray-400')}"></span>
+                    <span>${s.name}</span>
+                    ${scripts.length > 1 ? `<i data-lucide="x" class="w-3.5 h-3.5 ml-2 opacity-0 group-hover:opacity-100 hover:!text-red-500 transition-opacity"></i>` : ''}
                 `;
-
-                tab.addEventListener('click', (event) => {
-                    if (event.target.closest('[data-lucide="x"]')) {
-                        scripts = scripts.filter(x => x.id !== script.id);
-
-                        if (activeId === script.id) {
-                            activeId = scripts[0]?.id ?? null;
-                        }
-
+                tab.addEventListener('click', (e) => {
+                    if (e.target.closest('[data-lucide="x"]')) {
+                        scripts = scripts.filter(x => x.id !== s.id);
+                        if (activeId === s.id) activeId = scripts[0]?.id;
                         renderAll();
                         return;
                     }
-
-                    activeId = script.id;
+                    activeId = s.id;
                     renderAll();
                 });
-
                 strip.appendChild(tab);
             });
-
             lucide.createIcons();
         }
 
         function updateMainButtonState() {
             let total = 0;
-
-            scripts.forEach((script) => {
-                total += estimateCost(script);
-            });
-
+            scripts.forEach(s => total += estimateCost(s));
             currentTotalCost = total;
             el('total-cost').textContent = `${total} CR`;
-
-            const button = el('open-modal-btn');
-            const anyValid = scripts.some(script => script.valid);
-
-            button.disabled = !anyValid || total > MOCK_BALANCE;
+            
+            const btn = el('open-modal-btn');
+            const anyValid = scripts.some(s => s.valid);
+            btn.disabled = !anyValid || total > MOCK_BALANCE;
         }
 
         function renderEditor() {
-            const active = scripts.find(script => script.id === activeId);
+            const active = scripts.find(s => s.id === activeId);
             const input = el('script-input');
-            const badge = el('validity-badge');
-            const count = el('char-count');
-
             input.value = active ? active.content : '';
             input.disabled = !active;
 
+            const badge = el('validity-badge');
+            const count = el('char-count');
             if (!active || !active.content) {
-                badge.innerHTML = `
-                    <span class="w-2 h-2 rounded-full bg-gray-400 shadow-sm shadow-gray-400/50"></span>
-                    Empty
-                `;
-
+                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-gray-400 shadow-sm shadow-gray-400/50"></span> Empty';
                 count.textContent = '0 chars';
-                return;
+            } else if (active.valid) {
+                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span> Ready';
+                count.textContent = `${active.content.length} chars`;
             }
-
-            if (active.valid) {
-                badge.innerHTML = `
-                    <span class="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span>
-                    Ready
-                `;
-            } else {
-                badge.innerHTML = `
-                    <span class="w-2 h-2 rounded-full bg-red-500"></span>
-                    Invalid
-                `;
-            }
-
-            count.textContent = `${active.content.length} chars`;
         }
 
         function renderAll() {
-            scripts.forEach((script) => {
-                script.valid = checkValidity(script.content).valid;
+            scripts.forEach(s => {
+                s.valid = checkValidity(s.content).valid;
             });
-
             renderTabs();
             renderEditor();
             updateMainButtonState();
         }
 
-        function createObfuscationId() {
-            return uid();
-        }
-
-        function getStorageKey(id) {
-            return `${STORAGE_PREFIX}${id}`;
-        }
-
-        function saveObfuscationSession(session) {
-            localStorage.setItem(
-                getStorageKey(session.id),
-                JSON.stringify(session)
-            );
-        }
-
-        function buildObfuscationSession() {
-            const id = createObfuscationId();
-
-            const validScripts = scripts
-                .filter(script => script.valid)
-                .map(script => ({
-                    id: script.id,
-                    name: script.name,
-                    source: script.content,
-                    output: null,
-                    status: 'queued'
-                }));
-
-            return {
-                id,
-                status: 'processing',
-                createdAt: new Date().toISOString(),
-                completedAt: null,
-                engine: 'v1',
-                progress: 0,
-                totalCost: currentTotalCost,
-                scriptCount: validScripts.length,
-                settings: { ...settings },
-                scripts: validScripts,
-                error: null
-            };
-        }
-
-        async function obfuscateScript(script, session) {
-            // ======================================================
-            // REPLACE THIS FUNCTION WITH YOUR REAL API REQUEST.
-            // ======================================================
-            // Example:
-            //
-            // const response = await fetch('/api/obfuscate', {
-            //     method: 'POST',
-            //     headers: { 'Content-Type': 'application/json' },
-            //     body: JSON.stringify({
-            //         source: script.source,
-            //         settings: session.settings
-            //     })
-            // });
-            //
-            // if (!response.ok) {
-            //     throw new Error('Obfuscation request failed.');
-            // }
-            //
-            // const data = await response.json();
-            // return data.output;
-            // ======================================================
-
-            // Temporary demonstration delay.
-            await new Promise(resolve => setTimeout(resolve, 700));
-
-            // Temporary output so the results flow can be tested.
-            // This is NOT a real obfuscation algorithm.
-            return `-- Obfuscation preview\n-- Session: ${session.id}\n\n${script.source}`;
-        }
-
-        async function processObfuscation(session) {
-            try {
-                const total = session.scripts.length;
-
-                for (let i = 0; i < total; i++) {
-                    const script = session.scripts[i];
-
-                    script.status = 'processing';
-                    session.progress = Math.round((i / total) * 100);
-                    saveObfuscationSession(session);
-
-                    script.output = await obfuscateScript(script, session);
-                    script.status = 'complete';
-
-                    session.progress = Math.round(((i + 1) / total) * 100);
-                    saveObfuscationSession(session);
-                }
-
-                session.status = 'complete';
-                session.progress = 100;
-                session.completedAt = new Date().toISOString();
-
-                saveObfuscationSession(session);
-
-                confetti({
-                    particleCount: 150,
-                    spread: 80,
-                    origin: { y: 0.4 },
-                    colors: ['#2563eb', '#3b82f6', '#60a5fa', '#ffffff'],
-                    zIndex: 9999
-                });
-
-                await new Promise(resolve => setTimeout(resolve, 800));
-
-                window.location.href =
-                    `${RESULTS_PAGE}?id=${encodeURIComponent(session.id)}`;
-
-            } catch (error) {
-                console.error('Obfuscation failed:', error);
-
-                session.status = 'error';
-                session.error = error?.message || 'Unknown obfuscation error.';
-
-                saveObfuscationSession(session);
-
-                alert('Obfuscation failed. Your session has been saved.');
-                closeModal();
-            }
-        }
-
-        // Editor input
-        el('script-input').addEventListener('input', (event) => {
-            const active = scripts.find(script => script.id === activeId);
+        // Editor Input
+        el('script-input').addEventListener('input', (e) => {
+            const active = scripts.find(s => s.id === activeId);
             if (!active) return;
-
-            active.content = event.target.value;
+            active.content = e.target.value;
             active.valid = checkValidity(active.content).valid;
-
             renderAll();
         });
 
-        // Add script tab
-        el('add-tab-btn').addEventListener('click', () => {
-            newScript(`script${scripts.length + 1}.lua`);
-            renderAll();
-        });
-
-        // Drag and drop
+        el('add-tab-btn').addEventListener('click', () => { newScript(`script${scripts.length + 1}.lua`); renderAll(); });
+        
+        // Drag and Drop
         const dropZone = el('drop-zone');
         const dropOverlay = el('drop-overlay');
-
-        ['dragover', 'dragenter'].forEach((eventName) => {
-            dropZone.addEventListener(eventName, (event) => {
-                event.preventDefault();
-                dropOverlay.classList.remove('hidden');
-            });
-        });
-
-        ['dragleave', 'drop'].forEach((eventName) => {
-            dropZone.addEventListener(eventName, (event) => {
-                event.preventDefault();
-                dropOverlay.classList.add('hidden');
-            });
-        });
-
-        dropZone.addEventListener('drop', async (event) => {
-            const files = Array.from(event.dataTransfer.files || []);
-
-            for (const file of files) {
-                const text = await file.text();
-                newScript(file.name, text);
-            }
-
+        ['dragover', 'dragenter'].forEach(evt => dropZone.addEventListener(evt, (e) => { e.preventDefault(); dropOverlay.classList.remove('hidden'); }));
+        ['dragleave', 'drop'].forEach(evt => dropZone.addEventListener(evt, (e) => { e.preventDefault(); dropOverlay.classList.add('hidden'); }));
+        dropZone.addEventListener('drop', async (e) => {
+            const files = Array.from(e.dataTransfer.files || []);
+            for (const file of files) { const text = await file.text(); newScript(file.name, text); }
             if (files.length) renderAll();
         });
 
-        // Power levels
-        document.querySelectorAll('.power-btn').forEach((button) => {
-            button.addEventListener('click', () => {
-                settings.power = button.dataset.power;
-
-                document.querySelectorAll('.power-btn').forEach((other) => {
-                    other.className =
-                        'power-btn w-full flex items-center justify-between px-4 py-3 rounded-xl border border-gray-300/50 dark:border-white/10 hover:bg-white/40 dark:hover:bg-white/5 text-sm text-left transition-all';
-
-                    other.querySelector('span:first-child').className = 'font-medium';
-                    other.querySelector('span:last-child').className = 'text-xs font-mono text-gray-500';
+        // Config UI (Power Level)
+        document.querySelectorAll('.power-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                settings.power = btn.dataset.power;
+                document.querySelectorAll('.power-btn').forEach(b => {
+                    b.className = 'power-btn w-full flex items-center justify-between px-4 py-3 rounded-xl border border-gray-300/50 dark:border-white/10 hover:bg-white/40 dark:hover:bg-white/5 text-sm text-left transition-all';
+                    b.querySelector('span:first-child').className = 'font-medium';
+                    b.querySelector('span:last-child').className = 'text-xs font-mono text-gray-500';
                 });
-
-                button.className =
-                    'power-btn w-full flex items-center justify-between px-4 py-3 rounded-xl border border-solarglyph dark:border-blue-400 bg-solarglyph/10 dark:bg-blue-400/10 shadow-[0_0_10px_rgba(37,99,235,0.1)] text-sm text-left transition-all';
-
-                button.querySelector('span:first-child').className =
-                    'font-medium text-solarglyph dark:text-blue-400';
-
-                button.querySelector('span:last-child').className =
-                    'text-xs font-mono text-solarglyph dark:text-blue-400';
-
+                btn.className = 'power-btn w-full flex items-center justify-between px-4 py-3 rounded-xl border border-solarglyph dark:border-blue-400 bg-solarglyph/10 dark:bg-blue-400/10 shadow-[0_0_10px_rgba(37,99,235,0.1)] text-sm text-left transition-all';
+                btn.querySelector('span:first-child').className = 'font-medium text-solarglyph dark:text-blue-400';
+                btn.querySelector('span:last-child').className = 'text-xs font-mono text-solarglyph dark:text-blue-400';
                 updateMainButtonState();
             });
         });
 
-        // iOS toggles
-        document.querySelectorAll('.ios-toggle').forEach((switchButton) => {
-            switchButton.addEventListener('click', () => {
-                const key = switchButton.dataset.toggle;
+        // Config UI (iOS Toggles)
+        document.querySelectorAll('.ios-toggle').forEach(sw => {
+            sw.addEventListener('click', () => {
+                const key = sw.dataset.toggle;
                 settings[key] = !settings[key];
-
+                
                 if (settings[key]) {
-                    switchButton.classList.add('bg-solarglyph', 'dark:bg-blue-500');
-                    switchButton.classList.remove('bg-gray-300', 'dark:bg-white/20');
-                    switchButton.querySelector('.ios-knob').classList.add('translate-x-5');
-                    switchButton.querySelector('.ios-knob').classList.remove('translate-x-0');
+                    sw.classList.add('bg-solarglyph', 'dark:bg-blue-500');
+                    sw.classList.remove('bg-gray-300', 'dark:bg-white/20');
+                    sw.querySelector('.ios-knob').classList.add('translate-x-5');
+                    sw.querySelector('.ios-knob').classList.remove('translate-x-0');
                 } else {
-                    switchButton.classList.remove('bg-solarglyph', 'dark:bg-blue-500');
-                    switchButton.classList.add('bg-gray-300', 'dark:bg-white/20');
-                    switchButton.querySelector('.ios-knob').classList.remove('translate-x-5');
-                    switchButton.querySelector('.ios-knob').classList.add('translate-x-0');
+                    sw.classList.remove('bg-solarglyph', 'dark:bg-blue-500');
+                    sw.classList.add('bg-gray-300', 'dark:bg-white/20');
+                    sw.querySelector('.ios-knob').classList.remove('translate-x-5');
+                    sw.querySelector('.ios-knob').classList.add('translate-x-0');
                 }
-
                 updateMainButtonState();
             });
         });
 
-        // Modal
+        // Modal Logic
         const modal = el('receipt-modal');
         const modalContent = el('modal-content');
 
         el('open-modal-btn').addEventListener('click', () => {
-            const validScripts = scripts.filter(script => script.valid);
             const list = el('modal-recipe-list');
-
-            list.innerHTML = validScripts.map(script => `
+            list.innerHTML = scripts.filter(s => s.valid).map(s => `
                 <div class="flex items-center justify-between py-2.5 border-b border-gray-300/20 dark:border-white/5 last:border-0">
-                    <span class="text-sm font-mono flex items-center gap-2">
-                        <i data-lucide="file-code-2" class="w-4 h-4 text-solarglyph dark:text-blue-400"></i>
-                        ${escapeHtml(script.name)}
-                    </span>
-
-                    <span class="text-xs font-mono font-medium text-gray-500">
-                        ${estimateCost(script)} CR
-                    </span>
+                    <span class="text-sm font-mono flex items-center gap-2"><i data-lucide="file-code-2" class="w-4 h-4 text-solarglyph dark:text-blue-400"></i> ${s.name}</span>
+                    <span class="text-xs font-mono font-medium text-gray-500">${estimateCost(s)} CR</span>
                 </div>
             `).join('');
 
@@ -904,61 +408,73 @@
 
             el('modal-receipt-body').classList.remove('hidden');
             el('modal-waiting-body').classList.add('hidden');
-
+            
             modal.classList.remove('hidden');
-
             setTimeout(() => {
                 modalContent.classList.remove('scale-95', 'opacity-0');
                 modalContent.classList.add('scale-100', 'opacity-100');
             }, 10);
-
             lucide.createIcons();
         });
 
-        function closeModal() {
+        const closeModal = () => {
             modalContent.classList.remove('scale-100', 'opacity-100');
             modalContent.classList.add('scale-95', 'opacity-0');
-
-            setTimeout(() => {
-                modal.classList.add('hidden');
-            }, 300);
-        }
-
+            setTimeout(() => { modal.classList.add('hidden'); }, 300);
+        };
         el('cancel-modal-btn').addEventListener('click', closeModal);
         el('close-modal-btn').addEventListener('click', closeModal);
         el('close-modal-bg').addEventListener('click', closeModal);
 
-        // Confirm and start obfuscation
         el('confirm-obfuscate-btn').addEventListener('click', async () => {
-            const session = buildObfuscationSession();
-
-            // Save before processing starts so the job has a persistent ID.
-            saveObfuscationSession(session);
-
             el('modal-receipt-body').classList.add('hidden');
             el('modal-waiting-body').classList.remove('hidden');
             el('modal-waiting-body').classList.add('flex');
+            
+            await new Promise(r => setTimeout(r, 1200));
 
-            await processObfuscation(session);
+            // Generate unique session ID
+            const sessionId = 'obs_' + uid() + Date.now().toString(36);
+            
+            // Collect the valid scripts & settings to send to the results page
+            const sessionData = {
+                timestamp: Date.now(),
+                totalCost: currentTotalCost,
+                settings: settings,
+                scripts: scripts.filter(s => s.valid).map(s => ({
+                    id: s.id,
+                    name: s.name,
+                    content: s.content // Ideally this would be the actual obfuscated content in a real backend scenario
+                }))
+            };
+            
+            // Save inside local storage
+            localStorage.setItem(sessionId, JSON.stringify(sessionData));
+
+            confetti({
+                particleCount: 150,
+                spread: 80,
+                origin: { y: 0.4 },
+                colors: ['#2563eb', '#3b82f6', '#60a5fa', '#ffffff'],
+                zIndex: 9999
+            });
+
+            // Redirect to results page passing the Session ID in the URL
+            setTimeout(() => { 
+                closeModal(); 
+                window.location.href = `/results.html?id=${sessionId}`; 
+            }, 1800);
         });
 
-        // File import
-        el('file-input').addEventListener('change', async (event) => {
-            const files = Array.from(event.target.files || []);
-
-            for (const file of files) {
-                const text = await file.text();
-                newScript(file.name, text);
-            }
-
+        // Handle File Input
+        el('file-input').addEventListener('change', async (e) => {
+            const files = Array.from(e.target.files || []);
+            for (const file of files) { const text = await file.text(); newScript(file.name, text); }
             if (files.length) renderAll();
-
-            event.target.value = '';
+            e.target.value = '';
         });
 
         renderAll();
-</script>
-
+    </script>
 </body>
-
-</html> 
+</html>
