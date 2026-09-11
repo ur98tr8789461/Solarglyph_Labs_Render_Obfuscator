@@ -37,12 +37,12 @@
 
     <site-nav page="tool"></site-nav>
 
-    <main class="relative z-10 flex-1 w-full max-w-6xl mx-auto pt-28 pb-40 px-4 flex flex-col reveal active">
-        
+    <main class="relative z-10 flex-1 w-full pt-24 pb-32 flex flex-col reveal active">
+
         <!-- Header -->
-        <div class="flex items-center justify-between mb-8">
+        <div class="w-full px-4 sm:px-8 lg:px-12 flex flex-wrap items-center justify-between gap-4 pb-6 mb-2 border-b border-gray-300/40 dark:border-white/10">
             <div class="flex items-center gap-4">
-                <a href="index.html" class="glass-card rounded-full p-2.5 flex items-center justify-center border border-gray-300/40 dark:border-white/10 hover:bg-white/40 dark:hover:bg-white/10 transition-colors shadow-sm text-gray-500 hover:text-apple-textLight dark:hover:text-white" title="Back to Editor">
+                <a href="index.html" class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-white/40 dark:hover:bg-white/10 transition-colors text-gray-500 hover:text-apple-textLight dark:hover:text-white" title="Back to Editor">
                     <i data-lucide="arrow-left" class="w-5 h-5"></i>
                 </a>
                 <div>
@@ -53,7 +53,7 @@
                 </div>
             </div>
             <div class="flex gap-3">
-                <button id="copy-all-btn" class="glass-card rounded-xl px-5 py-2.5 text-sm font-medium flex items-center gap-2 border border-gray-300/40 dark:border-white/10 hover:bg-white/40 dark:hover:bg-white/10 transition-colors shadow-sm">
+                <button id="copy-all-btn" class="rounded-xl px-5 py-2.5 text-sm font-medium flex items-center gap-2 border border-gray-300/50 dark:border-white/10 hover:bg-white/40 dark:hover:bg-white/10 transition-colors text-gray-600 dark:text-gray-300">
                     <i data-lucide="copy" class="w-4 h-4"></i> Copy All
                 </button>
                 <button id="export-all-btn" class="bg-solarglyph dark:bg-blue-600 text-white rounded-xl px-5 py-2.5 text-sm font-medium flex items-center gap-2 shadow-[0_4px_14px_rgba(37,99,235,0.2)] hover:-translate-y-0.5 transition-all">
@@ -63,7 +63,7 @@
         </div>
 
         <!-- Results Container -->
-        <div id="results-container" class="space-y-8">
+        <div id="results-container" class="w-full flex flex-col">
             <!-- Dynamically populated -->
         </div>
         
@@ -77,7 +77,7 @@
             const resultsData = sessionStorage.getItem('sg_current_results');
             if (!resultsData) {
                 document.getElementById('results-container').innerHTML = `
-                    <div class="glass-card rounded-[2rem] p-12 text-center border border-gray-300/40 dark:border-white/10 shadow-lg">
+                    <div class="text-center py-24 px-4">
                         <i data-lucide="folder-x" class="w-12 h-12 text-gray-400 mx-auto mb-4"></i>
                         <h2 class="text-lg font-medium mb-2">No results found</h2>
                         <p class="text-gray-500 dark:text-gray-400 text-sm mb-6">It looks like you haven't obfuscated any scripts yet in this session.</p>
@@ -97,28 +97,28 @@
             // Generate Side-by-Side Views
             results.forEach((r, index) => {
                 const section = document.createElement('div');
-                section.className = "glass-card rounded-[2rem] overflow-hidden border border-gray-300/40 dark:border-white/10 shadow-lg";
+                section.className = "w-full border-b border-gray-300/40 dark:border-white/10 last:border-b-0";
                 
                 section.innerHTML = `
-                    <div class="bg-white/40 dark:bg-black/30 px-6 py-4 border-b border-gray-300/40 dark:border-white/10 flex justify-between items-center">
+                    <div class="px-4 sm:px-8 lg:px-12 py-4 flex justify-between items-center">
                         <span class="font-semibold text-[15px] mono flex items-center gap-2">
                             <i data-lucide="file-code-2" class="w-4 h-4 text-solarglyph dark:text-blue-400"></i> ${r.name}
                         </span>
-                        <button class="copy-single-btn px-4 py-2 text-xs font-semibold uppercase tracking-wide border border-gray-300/50 dark:border-white/10 rounded-lg bg-white/50 dark:bg-white/5 hover:bg-white/80 dark:hover:bg-white/10 flex items-center gap-1.5 transition-colors text-gray-600 dark:text-gray-300" data-index="${index}">
+                        <button class="copy-single-btn px-4 py-2 text-xs font-semibold uppercase tracking-wide border border-gray-300/50 dark:border-white/10 rounded-lg bg-white/40 dark:bg-white/5 hover:bg-white/70 dark:hover:bg-white/10 flex items-center gap-1.5 transition-colors text-gray-600 dark:text-gray-300" data-index="${index}">
                             <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy Script
                         </button>
                     </div>
                     
-                    <div class="grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-gray-300/40 dark:divide-white/10">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-gray-300/40 dark:divide-white/10 border-t border-gray-300/40 dark:border-white/10">
                         <!-- Original -->
                         <div class="flex flex-col bg-gray-50/30 dark:bg-black/10">
-                            <div class="px-5 py-2.5 text-[10px] uppercase tracking-widest font-semibold text-gray-500 border-b border-gray-300/40 dark:border-white/10 bg-white/20 dark:bg-white/[0.02]">Original Input</div>
-                            <pre class="p-5 text-[13px] leading-relaxed mono text-gray-600 dark:text-gray-400 overflow-auto h-[450px]">${r.original.replace(/</g, '&lt;')}</pre>
+                            <div class="px-4 sm:px-8 lg:px-12 py-2.5 text-[10px] uppercase tracking-widest font-semibold text-gray-500 border-b border-gray-300/40 dark:border-white/10 bg-white/20 dark:bg-white/[0.02]">Original Input</div>
+                            <pre class="px-4 sm:px-8 lg:px-12 py-5 text-[13px] leading-relaxed mono text-gray-600 dark:text-gray-400 overflow-auto h-[450px]">${r.original.replace(/</g, '&lt;')}</pre>
                         </div>
                         <!-- Output -->
                         <div class="flex flex-col bg-white/10 dark:bg-[#0a0a0c]/40">
-                            <div class="px-5 py-2.5 text-[10px] uppercase tracking-widest font-bold text-solarglyph dark:text-blue-400 border-b border-gray-300/40 dark:border-white/10 bg-solarglyph/5 dark:bg-blue-500/5">Secured Output</div>
-                            <pre class="p-5 text-[13px] leading-relaxed mono text-gray-800 dark:text-gray-200 overflow-auto h-[450px]">${r.output.replace(/</g, '&lt;')}</pre>
+                            <div class="px-4 sm:px-8 lg:px-12 py-2.5 text-[10px] uppercase tracking-widest font-bold text-solarglyph dark:text-blue-400 border-b border-gray-300/40 dark:border-white/10 bg-solarglyph/5 dark:bg-blue-500/5">Secured Output</div>
+                            <pre class="px-4 sm:px-8 lg:px-12 py-5 text-[13px] leading-relaxed mono text-gray-800 dark:text-gray-200 overflow-auto h-[450px]">${r.output.replace(/</g, '&lt;')}</pre>
                         </div>
                     </div>
                 `;
