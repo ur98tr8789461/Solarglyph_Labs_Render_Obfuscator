@@ -70,3 +70,26 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('scroll', reveal);
     setTimeout(reveal, 100);
 });
+// Listen for the custom event dispatched by components.js when the nav renders
+document.addEventListener('site-nav-ready', () => {
+    // Target the inner <nav> created by the SiteNav component
+    const navBar = document.querySelector('site-nav nav');
+    
+    if (!navBar) return;
+
+    let lastScrollTop = 0;
+
+    window.addEventListener('scroll', () => {
+        let currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+
+        // Use > 50 to prevent hiding when bouncing at the absolute top of the page
+        if (currentScroll > lastScrollTop && currentScroll > 50) {
+            // User is scrolling down - hide the navbar using Tailwind's translate utility
+            navBar.classList.add('-translate-y-full');
+        } else {
+            // User is scrolling up - show the navbar
+            navBar.classList.remove('-translate-y-full');
+        }
+        lastScrollTop = Math.max(0, currentScroll);
+    });
+});

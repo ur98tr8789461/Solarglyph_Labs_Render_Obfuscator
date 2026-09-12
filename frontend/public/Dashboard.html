@@ -25,7 +25,8 @@
     <div class="fixed inset-0 z-[-2] bg-cover bg-center" style="background-image: url('https://www.solarglyphlabs.com/images/Backgrounds/SolarGlyphCampus.png');"></div>
     <div class="fixed inset-0 z-[-1] bg-white/80 dark:bg-black/75 backdrop-blur-[24px] transition-colors duration-500"></div>
 
-    <site-nav page="dashboard"></site-nav>
+    <!-- MODIFICATION 1: Added Tailwind classes for fixed positioning, width, z-index, and smooth transform transitions -->
+    <site-nav page="dashboard" class="fixed top-0 w-full z-50 transition-transform duration-300 ease-in-out"></site-nav>
 
     <main class="relative z-10 min-h-screen pt-32 pb-16 px-4 max-w-5xl mx-auto flex flex-col">
         
@@ -244,6 +245,24 @@
 
         // Initialize
         loadDashboard();
+
+        // MODIFICATION 2: Added "Smart Navbar" Scroll Logic
+        let lastScrollTop = 0;
+        const navBar = document.querySelector('site-nav');
+
+        window.addEventListener('scroll', () => {
+            let currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+
+            // We use > 50 so it doesn't instantly hide when scrolling 1px from the absolute top
+            if (currentScroll > lastScrollTop && currentScroll > 50) {
+                // User is scrolling down - hide the navbar using Tailwind's translate utility
+                navBar.classList.add('-translate-y-full');
+            } else {
+                // User is scrolling up - show the navbar
+                navBar.classList.remove('-translate-y-full');
+            }
+            lastScrollTop = Math.max(0, currentScroll);
+        });
     </script>
 </body>
 </html>
