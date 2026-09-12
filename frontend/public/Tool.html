@@ -66,46 +66,6 @@
         .toggle-glow { box-shadow: 0 0 16px 2px rgba(99, 102, 241, 0.3); }
         .toggle-disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); transition: all 0.3s ease; }
         .power-disabled { opacity: 0.5; pointer-events: none; }
-        /* Sidebar Specific Animations & Theme */
-.sidebar-glass {
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-}
-
-.power-btn {
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Spring animation */
-}
-.power-btn:active {
-    transform: scale(0.96);
-}
-
-.toggle-row span {
-    transition: transform 0.3s ease;
-}
-.toggle-row:hover span {
-    transform: translateX(4px); /* Slight slide on hover */
-}
-
-/* Button Shine Effect */
-.btn-shine {
-    position: relative;
-    overflow: hidden;
-}
-.btn-shine::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 50%;
-    height: 100%;
-    background: linear-gradient(to right, transparent, rgba(255,255,255,0.2), transparent);
-    transform: skewX(-20deg);
-    animation: shine 3s infinite;
-}
-@keyframes shine {
-    0% { left: -100%; }
-    20% { left: 200%; }
-    100% { left: 200%; }
-}
     </style>
 </head>
 <body class="text-zinc-900 dark:text-zinc-100 transition-colors duration-500 overflow-x-hidden min-h-screen flex flex-col">
@@ -176,78 +136,77 @@
         </div>
 
         <!-- RIGHT COLUMN: SETTINGS CARD -->
-        <!-- RIGHT COLUMN: SETTINGS CARD -->
-<aside class="w-full lg:w-[380px] flex flex-col shrink-0 h-fit bg-white/60 dark:bg-zinc-900/40 backdrop-blur-2xl rounded-2xl border border-white/20 dark:border-zinc-700/50 sidebar-glass transition-colors">
-    <div class="p-6 space-y-8">
-        
-        <!-- Engine -->
-        <div class="group/engine">
-            <h3 class="text-[12px] uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-3 font-semibold flex items-center gap-2">
-                <i data-lucide="cpu" class="w-4 h-4 group-hover/engine:text-brand-500 transition-colors"></i> Core Engine
-            </h3>
-            <div class="relative group">
-                <select id="engine-select" class="w-full appearance-none bg-white/50 dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-700/80 rounded-xl px-4 py-3.5 text-sm font-medium outline-none focus:ring-2 focus:ring-brand-500/50 transition-all cursor-pointer hover:border-brand-400 dark:hover:border-brand-500 hover:shadow-lg hover:shadow-brand-500/10 text-zinc-800 dark:text-zinc-200">
-                    <!-- Populated by JS -->
-                </select>
-                <i data-lucide="chevrons-up-down" class="w-4 h-4 absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 group-hover:text-brand-500 pointer-events-none transition-colors"></i>
-            </div>
-        </div>
-
-        <!-- Power -->
-        <div>
-            <h3 class="text-[12px] uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-3 font-semibold flex items-center gap-2">
-                <i data-lucide="zap" class="w-4 h-4 text-amber-500"></i> Power Level
-            </h3>
-            <div class="flex flex-col gap-3" id="power-group">
-                <!-- Populated by JS -->
-            </div>
-        </div>
-
-        <!-- Modern Toggles -->
-        <div>
-            <h3 class="text-[12px] uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-3 font-semibold flex items-center gap-2">
-                <i data-lucide="sliders-horizontal" class="w-4 h-4"></i> Configuration
-            </h3>
-            <div class="bg-white/40 dark:bg-zinc-800/20 border border-zinc-200 dark:border-zinc-700/60 rounded-xl overflow-hidden backdrop-blur-sm">
-                <label class="toggle-row flex items-center justify-between px-5 py-4 border-b border-zinc-200 dark:border-zinc-700/60 cursor-pointer group hover:bg-zinc-100/50 dark:hover:bg-zinc-700/40 transition-all" data-toggle-id="strings">
-                    <span class="text-sm font-medium text-zinc-700 dark:text-zinc-200">String Encryption</span>
-                    <div class="relative">
-                        <button type="button" class="modern-toggle relative w-11 h-6 rounded-full bg-zinc-200 dark:bg-zinc-700 transition-colors focus:outline-none" data-toggle="strings">
-                            <span class="modern-knob absolute top-[2px] left-[2px] w-5 h-5 rounded-full bg-white shadow-sm transform translate-x-0"></span>
-                        </button>
+        <aside class="w-full lg:w-[380px] flex flex-col shrink-0 h-fit bg-white/70 dark:bg-zinc-900/50 backdrop-blur-xl rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-xl overflow-hidden transition-colors">
+            <div class="p-6 space-y-8">
+                
+                <!-- Engine -->
+                <div>
+                    <h3 class="text-[12px] uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-3 font-semibold flex items-center gap-2">
+                        <i data-lucide="cpu" class="w-4 h-4"></i> Core Engine
+                    </h3>
+                    <div class="relative group">
+                        <select id="engine-select" class="w-full appearance-none bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700 rounded-xl px-4 py-3.5 text-sm font-medium outline-none focus:ring-2 focus:ring-brand-500 transition-all cursor-pointer hover:border-zinc-300 dark:hover:border-zinc-600 text-zinc-800 dark:text-zinc-200">
+                            <!-- Populated by JS -->
+                        </select>
+                        <i data-lucide="chevrons-up-down" class="w-4 h-4 absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 group-hover:text-zinc-600 dark:group-hover:text-zinc-300 pointer-events-none transition-colors"></i>
                     </div>
-                </label>
-                <label class="toggle-row flex items-center justify-between px-5 py-4 border-b border-zinc-200 dark:border-zinc-700/60 cursor-pointer group hover:bg-zinc-100/50 dark:hover:bg-zinc-700/40 transition-all" data-toggle-id="controlflow">
-                    <span class="text-sm font-medium text-zinc-700 dark:text-zinc-200">Control Flow</span>
-                    <div class="relative">
-                        <button type="button" class="modern-toggle relative w-11 h-6 rounded-full bg-zinc-200 dark:bg-zinc-700 transition-colors focus:outline-none" data-toggle="controlflow">
-                            <span class="modern-knob absolute top-[2px] left-[2px] w-5 h-5 rounded-full bg-white shadow-sm transform translate-x-0"></span>
-                        </button>
-                    </div>
-                </label>
-                <label class="toggle-row flex items-center justify-between px-5 py-4 cursor-pointer group hover:bg-zinc-100/50 dark:hover:bg-zinc-700/40 transition-all" data-toggle-id="minify">
-                    <span class="text-sm font-medium text-zinc-700 dark:text-zinc-200">Minify Output</span>
-                    <div class="relative">
-                        <button type="button" class="modern-toggle relative w-11 h-6 rounded-full bg-zinc-200 dark:bg-zinc-700 transition-colors focus:outline-none" data-toggle="minify">
-                            <span class="modern-knob absolute top-[2px] left-[2px] w-5 h-5 rounded-full bg-white shadow-sm transform translate-x-0"></span>
-                        </button>
-                    </div>
-                </label>
-            </div>
-        </div>
-    </div>
+                </div>
 
-    <!-- Fixed Action Footer -->
-    <div class="p-6 bg-zinc-100/50 dark:bg-zinc-950/50 border-t border-zinc-200 dark:border-zinc-800/80 shrink-0 rounded-b-2xl backdrop-blur-md">
-        <div class="flex justify-between items-center mb-5">
-            <span class="text-sm text-zinc-500 dark:text-zinc-400 font-medium">Estimated Cost</span>
-            <span id="total-cost" class="text-2xl font-bold font-mono tracking-tight bg-gradient-to-r from-brand-600 to-indigo-400 bg-clip-text text-transparent dark:from-brand-400 dark:to-indigo-300 transition-all">0 CR</span>
-        </div>
-        <button id="open-modal-btn" disabled class="btn-shine w-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 disabled:bg-zinc-300 dark:disabled:bg-zinc-800 disabled:text-zinc-500 dark:disabled:text-zinc-600 py-3.5 rounded-xl font-semibold hover:not-disabled:scale-[1.03] active:not-disabled:scale-[0.98] hover:not-disabled:shadow-[0_0_20px_rgba(99,102,241,0.4)] transition-all duration-300 flex items-center justify-center gap-2 group/btn">
-            Review & Process <i data-lucide="arrow-right" class="w-4 h-4 group-hover/btn:translate-x-1 transition-transform"></i>
-        </button>
-    </div>
-</aside>
+                <!-- Power -->
+                <div>
+                    <h3 class="text-[12px] uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-3 font-semibold flex items-center gap-2">
+                        <i data-lucide="zap" class="w-4 h-4"></i> Power Level
+                    </h3>
+                    <div class="flex flex-col gap-2.5" id="power-group">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Modern Toggles -->
+                <div>
+                    <h3 class="text-[12px] uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-3 font-semibold flex items-center gap-2">
+                        <i data-lucide="sliders-horizontal" class="w-4 h-4"></i> Configuration
+                    </h3>
+                    <div class="bg-zinc-50 dark:bg-zinc-800/30 border border-zinc-200 dark:border-zinc-700/80 rounded-xl overflow-hidden">
+                        <label class="toggle-row flex items-center justify-between px-5 py-4 border-b border-zinc-200 dark:border-zinc-700/80 cursor-pointer group hover:bg-zinc-100/50 dark:hover:bg-zinc-700/30 transition-colors" data-toggle-id="strings">
+                            <span class="text-sm font-medium text-zinc-700 dark:text-zinc-200">String Encryption</span>
+                            <div class="relative">
+                                <button type="button" class="modern-toggle relative w-11 h-6 rounded-full bg-zinc-200 dark:bg-zinc-700 transition-colors focus:outline-none" data-toggle="strings">
+                                    <span class="modern-knob absolute top-[2px] left-[2px] w-5 h-5 rounded-full bg-white shadow-sm transform translate-x-0"></span>
+                                </button>
+                            </div>
+                        </label>
+                        <label class="toggle-row flex items-center justify-between px-5 py-4 border-b border-zinc-200 dark:border-zinc-700/80 cursor-pointer group hover:bg-zinc-100/50 dark:hover:bg-zinc-700/30 transition-colors" data-toggle-id="controlflow">
+                            <span class="text-sm font-medium text-zinc-700 dark:text-zinc-200">Control Flow</span>
+                            <div class="relative">
+                                <button type="button" class="modern-toggle relative w-11 h-6 rounded-full bg-zinc-200 dark:bg-zinc-700 transition-colors focus:outline-none" data-toggle="controlflow">
+                                    <span class="modern-knob absolute top-[2px] left-[2px] w-5 h-5 rounded-full bg-white shadow-sm transform translate-x-0"></span>
+                                </button>
+                            </div>
+                        </label>
+                        <label class="toggle-row flex items-center justify-between px-5 py-4 cursor-pointer group hover:bg-zinc-100/50 dark:hover:bg-zinc-700/30 transition-colors" data-toggle-id="minify">
+                            <span class="text-sm font-medium text-zinc-700 dark:text-zinc-200">Minify Output</span>
+                            <div class="relative">
+                                <button type="button" class="modern-toggle relative w-11 h-6 rounded-full bg-zinc-200 dark:bg-zinc-700 transition-colors focus:outline-none" data-toggle="minify">
+                                    <span class="modern-knob absolute top-[2px] left-[2px] w-5 h-5 rounded-full bg-white shadow-sm transform translate-x-0"></span>
+                                </button>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fixed Action Footer -->
+            <div class="p-6 bg-zinc-50 dark:bg-zinc-900/90 border-t border-zinc-200 dark:border-zinc-800 shrink-0 rounded-b-2xl">
+                <div class="flex justify-between items-center mb-5">
+                    <span class="text-sm text-zinc-500 dark:text-zinc-400 font-medium">Estimated Cost</span>
+                    <span id="total-cost" class="text-2xl font-bold font-mono tracking-tight text-zinc-900 dark:text-white transition-all">0 CR</span>
+                </div>
+                <button id="open-modal-btn" disabled class="w-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 disabled:bg-zinc-200 dark:disabled:bg-zinc-800 disabled:text-zinc-400 dark:disabled:text-zinc-600 py-3.5 rounded-xl font-semibold hover:not-disabled:scale-[1.02] hover:not-disabled:shadow-lg transition-all duration-200 flex items-center justify-center gap-2">
+                    Review & Process <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </aside>
     </main>
 
     <site-footer></site-footer>
@@ -503,48 +462,40 @@
         }
 
         function renderPowerLevels(engineConfig) {
-    const group = el('power-group');
-    group.innerHTML = CONFIG.powerLevels.map(p => {
-        const isActive = settings.power === p.id;
-        const isDisabled = engineConfig.disabledPower.includes(p.id);
-        const disabledClass = isDisabled ? ' power-disabled' : '';
-        
-        if (isActive && !isDisabled) {
-            return `
-            <button data-power="${p.id}" class="power-btn w-full flex items-center justify-between px-5 py-4 rounded-xl border border-brand-500 bg-brand-50/80 dark:bg-brand-500/10 shadow-[0_0_15px_rgba(99,102,241,0.25)] text-sm text-left scale-[1.02] transform ring-1 ring-brand-500/50 z-10 relative overflow-hidden">
-                <div class="absolute inset-0 bg-gradient-to-r from-brand-500/0 via-brand-500/5 to-brand-500/0 dark:via-brand-500/10"></div>
-                <div class="flex items-center gap-3 relative z-10">
-                    <div class="w-5 h-5 rounded-full bg-brand-500 flex items-center justify-center shadow-inner">
-                        <i data-lucide="check" class="w-3 h-3 text-white"></i>
-                    </div>
-                    <span class="font-bold tracking-wide text-brand-700 dark:text-brand-300">${p.name}</span>
-                </div>
-                <span class="text-xs font-mono font-bold text-brand-600 dark:text-brand-400 relative z-10 bg-brand-100 dark:bg-brand-900/50 px-2 py-1 rounded-md">${p.cost} CR</span>
-            </button>`;
-        } else {
-            return `
-            <button data-power="${p.id}" class="power-btn w-full flex items-center justify-between px-5 py-4 rounded-xl border border-zinc-200 dark:border-zinc-700/60 bg-white/40 dark:bg-zinc-800/20 hover:bg-white dark:hover:bg-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-600 hover:scale-[1.01] hover:shadow-md text-sm text-left${disabledClass}">
-                <div class="flex items-center gap-3">
-                    <div class="w-5 h-5 rounded-full border-2 border-zinc-300 dark:border-zinc-600 transition-colors"></div>
-                    <span class="font-medium text-zinc-600 dark:text-zinc-400">${p.name}</span>
-                </div>
-                <span class="text-xs font-mono font-medium text-zinc-400">${p.cost} CR</span>
-            </button>`;
+            const group = el('power-group');
+            group.innerHTML = CONFIG.powerLevels.map(p => {
+                const isActive = settings.power === p.id;
+                const isDisabled = engineConfig.disabledPower.includes(p.id);
+                const disabledClass = isDisabled ? ' power-disabled' : '';
+                
+                if (isActive && !isDisabled) {
+                    return `
+                    <button data-power="${p.id}" class="power-btn w-full flex items-center justify-between px-4 py-3.5 rounded-xl border-2 border-brand-500 bg-brand-50 dark:bg-brand-500/10 shadow-[0_4px_12px_rgba(99,102,241,0.1)] text-sm text-left transition-all">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-brand-500 animate-pulse"></span>
+                            <span class="font-semibold text-brand-700 dark:text-brand-400">${p.name}</span>
+                        </div>
+                        <span class="text-xs font-mono font-medium text-brand-600 dark:text-brand-400">${p.cost} CR</span>
+                    </button>`;
+                } else {
+                    return `
+                    <button data-power="${p.id}" class="power-btn w-full flex items-center justify-between px-4 py-3.5 rounded-xl border border-zinc-200 dark:border-zinc-700/80 bg-transparent hover:bg-zinc-50 dark:hover:bg-zinc-800/50 text-sm text-left transition-all${disabledClass}">
+                        <span class="font-medium text-zinc-700 dark:text-zinc-300">${p.name}</span>
+                        <span class="text-xs font-mono text-zinc-400">${p.cost} CR</span>
+                    </button>`;
+                }
+            }).join('');
+
+            // Rebind events
+            document.querySelectorAll('.power-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    if (btn.classList.contains('power-disabled')) return;
+                    settings.power = btn.dataset.power;
+                    applyEngineConstraints(); // Re-render to update UI
+                    updateMainButtonState();
+                });
+            });
         }
-    }).join('');
-
-    lucide.createIcons(); // Ensure the new checkmark icons render
-
-    // Rebind events
-    document.querySelectorAll('.power-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            if (btn.classList.contains('power-disabled')) return;
-            settings.power = btn.dataset.power;
-            applyEngineConstraints(); // Re-render to update UI
-            updateMainButtonState();
-        });
-    });
-}
 
         // Particle System for Toggles
         function fireToggleParticles(container) {
