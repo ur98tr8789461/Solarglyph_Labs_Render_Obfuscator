@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en" class="dark style-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Script Comparison | Solarglyph Labs</title>
+    <meta name="description" content="Compare Luau scripts with a polished Monaco diff editor.">
+    <meta name="author" content="Solarglyph Labs">
+
+    <link rel="icon" href="https://www.solarglyphlabs.com/images/Logo/SolarglyphLabsLogoCut.png" type="image/png">
+
+    <!-- Fonts: Inter for UI, JetBrains Mono for Code -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- External Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.js"></script>
+
+    <!-- Solarglyph Shared Components & Config -->
+    <script src="/shared/theme-config.js"></script>
+    <link rel="stylesheet" href="/shared/styles.css">
+    <script src="/shared/components.js" defer></script>
+
+    <!-- Fallback Tailwind Config -->
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ["Inter", "sans-serif"],
+                        mono: ["JetBrains Mono", "monospace"]
+                    },
+                    colors: {
+                        solarglyph: "#3b82f6", 
+                        apple: {
+                            textLight: "#1d1d1f",
+                            textDark: "#f5f5f7"
+                        }
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'fade-in-up': 'fadeInUp 0.8s cubic-bezier(0.16,1,0.3,1) forwards'
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-15px)' }
+                        },
+                        fadeInUp: {
+                            '0%': { opacity: 0, transform: 'translateY(20px)' },
+                            '100%': { opacity: 1, transform: 'translateY(0)' }
+                        }
+                    }
+                }
+            }
+        };
+    </script>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        ::-webkit-scrollbar { width: 7px; height: 7px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(113, 113, 122, 0.4);
+            border-radius: 999px;
+        }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(113, 113, 122, 0.65); }
+
+        /* Solarglyph Glass Card Utilities */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .dark .glass-card {
+            background: rgba(0, 0, 0, 0.45);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .drop-active {
+            border-color: #3b82f6 !important;
+            background: rgba(59, 130, 246, 0.1) !important;
+            box-shadow: 0 0 24px rgba(59, 130, 246, 0.2);
+        }
+
+        .monaco-diff-editor,
+        .monaco-editor,
+        .overflow-guard {
+            border-radius: 0 0 1.5rem 1.5rem;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spin { animation: spin 0.8s linear infinite; }
+        
+        /* Smooth collapse for stats */
+        #stats-grid {
+            transition: all 0.4s cubic-bezier(0.16,1,0.3,1);
+            max-height: 500px;
+            opacity: 1;
+            overflow: hidden;
+        }
+        #stats-grid.collapsed {
+            max-height: 0;
+            opacity: 0;
+            margin-top: 0;
+            margin-bottom: 0;
+        }
+        .chevron-icon { transition: transform 0.3s ease; }
+        .collapsed-chevron { transform: rotate(-180deg); }
+    </style>
+</head>
+
+<body class="text-apple-textLight dark:text-apple-textDark transition-colors duration-500 overflow-x-hidden min-h-screen flex flex-col">
+
+    <!-- Ambient background treatment -->
+    <div class="fixed inset-0 z-[-2] bg-cover bg-center" style="background-image: url('https://www.solarglyphlabs.com/images/Backgrounds/SolarGlyphCampus.png');"></div>
+    <div class="fixed inset-0 z-[-1] bg-white/80 dark:bg-black/75 backdrop-blur-[24px] transition-colors duration-500"></div>
+
+    <!-- Themed Background Glows -->
+    <div class="pointer-events-none fixed inset-0 z-[-1] overflow-hidden">
+        <div class="absolute left-[-10rem] top-20 h-96 w-96 rounded-full bg-solarglyph/10 dark:bg-blue-500/20 blur-[100px] animate-float"></div>
+        <div class="absolute bottom-[-10rem] right-[-8rem] h-96 w-96 rounded-full bg-purple-500/10 dark:bg-purple-500/15 blur-[110px] animate-float" style="animation-delay: 2s;"></div>
+    </div>
+
+    <!-- Official Solarglyph Nav Component -->
+    <site-nav page="tool"></site-nav>
+
+    <!-- Main Workspace -->
+    <main class="relative z-10 mx-auto flex flex-1 w-full max-w-[1600px] flex-col px-4 pb-20 pt-32 sm:px-6 lg:px-8">
+
+        <!-- Header -->
+        <header class="mb-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between opacity-0 animate-fade-in-up">
+            <div>
+                <h1 class="text-4xl md:text-5xl font-bold tracking-tighter mb-3">
+                    Script <span class="text-transparent bg-clip-text bg-gradient-to-r from-solarglyph to-blue-500 dark:from-blue-400 dark:to-solarglyph">Comparison</span>
+                </h1>
+
+                <p class="max-w-2xl text-lg text-gray-600 dark:text-gray-400 leading-relaxed">
+                    Inspect changes between two Luau scripts using a precise, syntax-aware diff engine.
+                </p>
+            </div>
+
+            <div class="flex flex-wrap gap-3">
+                <button id="swap-button" class="flex items-center gap-2 rounded-full glass-card px-5 py-3 font-medium text-gray-700 dark:text-gray-200 hover:bg-white/40 dark:hover:bg-white/10 transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-0.5">
+                    <i data-lucide="arrow-left-right" class="h-4 w-4"></i> Swap
+                </button>
+                <button id="clear-button" class="flex items-center gap-2 rounded-full glass-card px-5 py-3 font-medium text-gray-700 dark:text-gray-200 hover:bg-white/40 dark:hover:bg-white/10 transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-0.5">
+                    <i data-lucide="trash-2" class="h-4 w-4"></i> Clear
+                </button>
+                <button id="report-button" class="flex items-center gap-2 rounded-full glass-card px-5 py-3 font-medium text-solarglyph dark:text-blue-400 hover:bg-white/40 dark:hover:bg-white/10 border border-solarglyph/20 transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-0.5">
+                    <i data-lucide="file-bar-chart-2" class="h-4 w-4"></i> Generate Report
+                </button>
+                <button id="download-button" class="flex items-center gap-2 rounded-full bg-solarglyph text-white px-6 py-3 font-medium transition-all duration-300 shadow-lg shadow-solarglyph/20 hover:shadow-xl hover:shadow-solarglyph/40 hover:-translate-y-0.5">
+                    <i data-lucide="download" class="h-4 w-4"></i> Export Modified
+                </button>
+            </div>
+        </header>
+
+        <!-- Collapsible Stats Section -->
+        <div class="mb-4 flex items-center justify-between opacity-0 animate-fade-in-up" style="animation-delay: 0.1s;">
+            <h3 class="text-sm font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">Statistics</h3>
+            <button id="toggle-stats-btn" class="text-gray-500 hover:text-solarglyph dark:hover:text-blue-400 transition-colors p-1">
+                <i data-lucide="chevron-up" id="stats-chevron" class="h-5 w-5 chevron-icon"></i>
+            </button>
+        </div>
+
+        <section id="stats-grid" class="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-5 opacity-0 animate-fade-in-up" style="animation-delay: 0.1s;">
+            <article class="glass-card rounded-[2rem] p-5 shadow-sm">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">Original</span>
+                    <div class="w-8 h-8 rounded-full bg-gray-100 dark:bg-white/10 flex items-center justify-center"><i data-lucide="file-code-2" class="h-4 w-4 text-gray-500 dark:text-gray-400"></i></div>
+                </div>
+                <div id="original-lines" class="mt-4 font-mono text-3xl font-bold">0</div>
+                <div class="mt-1 text-sm text-gray-500 dark:text-gray-400">lines</div>
+            </article>
+
+            <article class="glass-card rounded-[2rem] p-5 shadow-sm">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">Modified</span>
+                    <div class="w-8 h-8 rounded-full bg-gray-100 dark:bg-white/10 flex items-center justify-center"><i data-lucide="file-pen-line" class="h-4 w-4 text-gray-500 dark:text-gray-400"></i></div>
+                </div>
+                <div id="modified-lines" class="mt-4 font-mono text-3xl font-bold">0</div>
+                <div class="mt-1 text-sm text-gray-500 dark:text-gray-400">lines</div>
+            </article>
+
+            <article class="glass-card rounded-[2rem] p-5 shadow-sm border border-emerald-500/20">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">Added</span>
+                    <div class="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center"><i data-lucide="plus" class="h-4 w-4 text-emerald-500"></i></div>
+                </div>
+                <div id="added-lines" class="mt-4 font-mono text-3xl font-bold text-emerald-600 dark:text-emerald-400">0</div>
+                <div class="mt-1 text-sm text-gray-500 dark:text-gray-400">changed lines</div>
+            </article>
+
+            <article class="glass-card rounded-[2rem] p-5 shadow-sm border border-red-500/20">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-widest text-red-600 dark:text-red-400">Removed</span>
+                    <div class="w-8 h-8 rounded-full bg-red-50 dark:bg-red-500/10 flex items-center justify-center"><i data-lucide="minus" class="h-4 w-4 text-red-500"></i></div>
+                </div>
+                <div id="removed-lines" class="mt-4 font-mono text-3xl font-bold text-red-600 dark:text-red-400">0</div>
+                <div class="mt-1 text-sm text-gray-500 dark:text-gray-400">changed lines</div>
+            </article>
+
+            <article class="glass-card col-span-2 lg:col-span-1 rounded-[2rem] p-5 shadow-sm border border-solarglyph/30 dark:border-blue-500/30">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-widest text-solarglyph dark:text-blue-400">Similarity</span>
+                    <div class="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center"><i data-lucide="scan-search" class="h-4 w-4 text-solarglyph dark:text-blue-400"></i></div>
+                </div>
+                <div id="similarity-value" class="mt-4 font-mono text-3xl font-bold text-solarglyph dark:text-blue-400">100%</div>
+                <div class="mt-3 h-2 overflow-hidden rounded-full bg-gray-200 dark:bg-white/10">
+                    <div id="similarity-bar" class="h-full w-full rounded-full bg-gradient-to-r from-solarglyph to-blue-400 transition-all duration-500"></div>
+                </div>
+            </article>
+        </section>
+
+        <!-- Editor Workspace Component -->
+        <section class="glass-card flex min-h-[720px] flex-1 flex-col overflow-hidden rounded-[2rem] shadow-2xl opacity-0 animate-fade-in-up" style="animation-delay: 0.2s;">
+            
+            <!-- Toolbar -->
+            <div class="flex flex-col gap-4 border-b border-gray-200/50 dark:border-white/10 bg-white/30 dark:bg-black/30 px-6 py-4 lg:flex-row lg:items-center lg:justify-between">
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="flex items-center rounded-xl p-1 bg-gray-200/50 dark:bg-white/5 backdrop-blur-sm">
+                        <button id="side-mode" class="flex items-center gap-2 rounded-lg bg-white dark:bg-white/10 shadow-sm px-4 py-2 text-sm font-semibold text-gray-900 dark:text-white transition-all" data-mode="side">
+                            <i data-lucide="columns-2" class="h-4 w-4"></i> Side by Side
+                        </button>
+                        <button id="inline-mode" class="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all" data-mode="inline">
+                            <i data-lucide="rows-3" class="h-4 w-4"></i> Inline
+                        </button>
+                    </div>
+
+                    <label class="flex items-center gap-2 rounded-xl border border-gray-200/50 dark:border-white/10 bg-white/40 dark:bg-black/20 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 cursor-pointer">
+                        <input id="whitespace-toggle" type="checkbox" class="accent-solarglyph w-4 h-4 rounded">
+                        Ignore whitespace
+                    </label>
+
+                    <select id="editor-theme" class="rounded-xl border border-gray-200/50 dark:border-white/10 bg-white/40 dark:bg-black/20 px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 cursor-pointer focus:outline-none focus:ring-2 focus:ring-solarglyph appearance-none">
+                        <option value="auto">System Default</option>
+                        <option value="vs">Light Theme</option>
+                        <option value="vs-dark">Dark Theme</option>
+                        <option value="hc-black">High Contrast</option>
+                    </select>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2">
+                    <button id="previous-change" class="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100/50 dark:hover:bg-white/10 transition-colors">
+                        <i data-lucide="chevron-up" class="h-4 w-4"></i> Previous
+                    </button>
+                    <button id="next-change" class="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100/50 dark:hover:bg-white/10 transition-colors">
+                        <i data-lucide="chevron-down" class="h-4 w-4"></i> Next
+                    </button>
+                </div>
+            </div>
+
+            <!-- File Dropzones / Headers -->
+            <div class="grid grid-cols-1 border-b border-gray-200/50 dark:border-white/10 lg:grid-cols-2 bg-white/20 dark:bg-black/20">
+                
+                <!-- Original File -->
+                <div id="original-drop-zone" class="border-b border-gray-200/50 dark:border-white/10 lg:border-b-0 lg:border-r px-6 py-4 transition-all">
+                    <div class="flex items-center justify-between gap-4">
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="h-2.5 w-2.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]"></span>
+                                <span class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Original</span>
+                            </div>
+                            <input type="text" id="original-filename" value="original.lua" spellcheck="false" class="w-full bg-transparent border-none p-0 m-0 font-mono text-sm font-medium text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-0 truncate" />
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            <button id="original-copy" title="Copy original" class="flex h-10 w-10 items-center justify-center rounded-xl bg-white/40 dark:bg-white/5 text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-white/10 transition-all shadow-sm">
+                                <i data-lucide="copy" class="h-4 w-4"></i>
+                            </button>
+                            <button id="original-upload" class="flex items-center gap-2 rounded-xl bg-white/40 dark:bg-white/5 px-4 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-white dark:hover:bg-white/10 transition-all shadow-sm">
+                                <i data-lucide="upload-cloud" class="h-4 w-4"></i> Upload
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modified File -->
+                <div id="modified-drop-zone" class="px-6 py-4 transition-all">
+                    <div class="flex items-center justify-between gap-4">
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
+                                <span class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">Modified</span>
+                            </div>
+                            <input type="text" id="modified-filename" value="modified.lua" spellcheck="false" class="w-full bg-transparent border-none p-0 m-0 font-mono text-sm font-medium text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-0 truncate" />
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            <button id="modified-copy" title="Copy modified" class="flex h-10 w-10 items-center justify-center rounded-xl bg-white/40 dark:bg-white/5 text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-white/10 transition-all shadow-sm">
+                                <i data-lucide="copy" class="h-4 w-4"></i>
+                            </button>
+                            <button id="modified-upload" class="flex items-center gap-2 rounded-xl bg-white/40 dark:bg-white/5 px-4 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-white dark:hover:bg-white/10 transition-all shadow-sm">
+                                <i data-lucide="upload-cloud" class="h-4 w-4"></i> Upload
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Editor Core -->
+            <div class="relative min-h-[500px] flex-1 bg-white/80 dark:bg-[#1e1e1e]/90 backdrop-blur-md">
+                <div id="editor-loading" class="absolute inset-0 z-20 flex items-center justify-center bg-white/80 dark:bg-[#1e1e1e]/90 backdrop-blur-md">
+                    <div class="flex flex-col items-center gap-4">
+                        <i data-lucide="loader-2" class="spin h-10 w-10 text-solarglyph dark:text-blue-400"></i>
+                        <span class="font-mono text-sm text-gray-500 dark:text-gray-400">Mounting comparison engine...</span>
+                    </div>
+                </div>
+                <div id="diff-editor" class="absolute inset-0"></div>
+            </div>
+
+            <!-- Privacy Notice Footer -->
+            <div class="flex items-center justify-center gap-2 border-t border-gray-200/50 dark:border-white/10 bg-white/30 dark:bg-black/30 px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 rounded-b-[2rem]">
+                <i data-lucide="lock" class="h-3.5 w-3.5"></i>
+                Local processing only. Nothing sent here is stored by Solarglyph Labs.
+            </div>
+        </section>
+    </main>
+
+    <!-- Site Footer Component -->
+    <site-footer></site-footer>
+
+    <!-- Status Toast -->
+    <div id="toast" class="pointer-events-none fixed bottom-10 left-1/2 z-[100] flex -translate-x-1/2 translate-y-4 items-center gap-3 rounded-full border border-gray-200/50 dark:border-white/10 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md px-6 py-3 text-sm font-medium text-gray-800 dark:text-white opacity-0 shadow-2xl transition-all duration-300">
+        <i data-lucide="check-circle-2" class="h-5 w-5 text-emerald-500"></i>
+        <span id="toast-message">Complete</span>
+    </div>
+
+    <!-- Hidden File Inputs -->
+    <input id="original-input" type="file" accept=".lua,.luau,.txt" class="hidden">
+    <input id="modified-input" type="file" accept=".lua,.luau,.txt" class="hidden">
+
+    <script src="/shared/site.js"></script>
+    
+    <script>
+        lucide.createIcons();
+        const byId = id => document.getElementById(id);
+
+        const state = {
+            originalCode: `-- Original player data service\n\nlocal Players = game:GetService("Players")\n\nlocal function greetPlayer(player)\n    print("Welcome, " .. player.Name)\nend\n\nPlayers.PlayerAdded:Connect(greetPlayer)`,
+            modifiedCode: `-- Updated player data service\n\nlocal Players = game:GetService("Players")\nlocal ReplicatedStorage = game:GetService("ReplicatedStorage")\n\nlocal PlayerLoaded = ReplicatedStorage:WaitForChild("PlayerLoaded")\n\nlocal function greetPlayer(player: Player)\n    print(\`Welcome to the experience, {player.DisplayName}!\`)\n    PlayerLoaded:FireClient(player)\nend\n\nPlayers.PlayerAdded:Connect(greetPlayer)`,
+            inline: false,
+            ignoreWhitespace: false,
+            manualTheme: "auto"
+        };
+
+        let diffEditor, originalModel, modifiedModel, toastTimeout;
+
+        require.config({ paths: { vs: "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs" }});
+
+        require(["vs/editor/editor.main"], function () {
+            registerLuauLanguage();
+            originalModel = monaco.editor.createModel(state.originalCode, "luau", monaco.Uri.parse("file:///original.lua"));
+            modifiedModel = monaco.editor.createModel(state.modifiedCode, "luau", monaco.Uri.parse("file:///modified.lua"));
+
+            diffEditor = monaco.editor.createDiffEditor(byId("diff-editor"), {
+                theme: currentMonacoTheme(),
+                automaticLayout: true,
+                renderSideBySide: true,
+                originalEditable: true,
+                readOnly: false,
+                minimap: { enabled: false },
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: 14,
+                lineHeight: 24,
+                padding: { top: 24, bottom: 24 },
+                scrollBeyondLastLine: false,
+                smoothScrolling: true,
+                renderOverviewRuler: true,
+                enableSplitViewResizing: true,
+                ignoreTrimWhitespace: false,
+                diffWordWrap: "on",
+                scrollbar: { verticalScrollbarSize: 8, horizontalScrollbarSize: 8 }
+            });
+
+            diffEditor.setModel({ original: originalModel, modified: modifiedModel });
+
+            originalModel.onDidChangeContent(syncState);
+            modifiedModel.onDidChangeContent(syncState);
+            diffEditor.onDidUpdateDiff(updateStatistics);
+
+            byId("editor-loading").style.display = "none";
+            updateStatistics();
+
+            const observer = new MutationObserver(() => {
+                if (state.manualTheme === "auto") monaco.editor.setTheme(currentMonacoTheme());
+            });
+            observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+        });
+
+        function registerLuauLanguage() {
+            monaco.languages.register({ id: "luau" });
+            monaco.languages.setMonarchTokensProvider("luau", {
+                defaultToken: "", tokenPostfix: ".luau",
+                keywords: ["and", "break", "continue", "do", "else", "elseif", "end", "export", "false", "for", "function", "if", "in", "local", "nil", "not", "or", "repeat", "return", "self", "then", "true", "type", "typeof", "until", "while"],
+                builtins: ["game", "workspace", "script", "require", "print", "warn", "error", "pairs", "ipairs", "next", "pcall", "xpcall", "task", "table", "string", "math", "coroutine", "Instance"],
+                tokenizer: {
+                    root: [
+                        [/[a-zA-Z_]\w*/, { cases: { "@keywords": "keyword", "@builtins": "type.identifier", "@default": "identifier" } }],
+                        [/\d+(\.\d+)?/, "number"],
+                        [/--\[\[/, "comment", "@blockComment"],
+                        [/--.*$/, "comment"],
+                        [/"([^"\\]|\\.)*$/, "string.invalid"],
+                        [/"/, "string", "@doubleString"],
+                        [/'/, "string", "@singleString"],
+                        [/`/, "string", "@interpolatedString"],
+                        [/[{}()[\]]/, "@brackets"],
+                        [/[<>]=?|==|~=|\+|-|\*|\/|%|\^|#|=/, "operator"],
+                        [/[;,.]/, "delimiter"]
+                    ],
+                    blockComment: [[/\]\]/, "comment", "@pop"], [/./, "comment"]],
+                    doubleString: [[/[^\\"]+/, "string"], [/\\./, "string.escape"], [/"/, "string", "@pop"]],
+                    singleString: [[/[^\\']+/, "string"], [/\\./, "string.escape"], [/'/, "string", "@pop"]],
+                    interpolatedString: [[/[^\\`{]+/, "string"], [/\{/, "delimiter.bracket"], [/\}/, "delimiter.bracket"], [/\\./, "string.escape"], [/`/, "string", "@pop"]]
+                }
+            });
+        }
+
+        function currentMonacoTheme() {
+            if (state.manualTheme !== "auto") return state.manualTheme;
+            return document.documentElement.classList.contains("dark") ? "vs-dark" : "vs";
+        }
+
+        function syncState() {
+            state.originalCode = originalModel.getValue();
+            state.modifiedCode = modifiedModel.getValue();
+            updateStatistics();
+        }
+
+        function updateModels() {
+            if (!originalModel || !modifiedModel) return;
+            originalModel.setValue(state.originalCode);
+            modifiedModel.setValue(state.modifiedCode);
+            updateStatistics();
+        }
+
+        function getLines(value) { return !value.length ? [] : value.replace(/\r\n/g, "\n").split("\n"); }
+        function normalizedLines(value) { return getLines(value).map(line => state.ignoreWhitespace ? line.trim() : line); }
+
+        function calculateSimilarity(original, modified) {
+            const first = normalizedLines(original), second = normalizedLines(modified);
+            if (!first.length && !second.length) return 100;
+            if (!first.length || !second.length) return 0;
+            const frequencies = new Map();
+            for (const line of first) frequencies.set(line, (frequencies.get(line) || 0) + 1);
+            let matching = 0;
+            for (const line of second) {
+                const count = frequencies.get(line) || 0;
+                if (count > 0) { matching++; frequencies.set(line, count - 1); }
+            }
+            return Math.round((matching * 2 / (first.length + second.length)) * 100);
+        }
+
+        function updateStatistics() {
+            if (!originalModel || !modifiedModel) return;
+            const changes = diffEditor?.getLineChanges() || [];
+            let added = 0, removed = 0;
+            for (const change of changes) {
+                if (change.modifiedEndLineNumber > 0) added += change.modifiedEndLineNumber - change.modifiedStartLineNumber + 1;
+                if (change.originalEndLineNumber > 0) removed += change.originalEndLineNumber - change.originalStartLineNumber + 1;
+            }
+            byId("original-lines").textContent = getLines(originalModel.getValue()).length;
+            byId("modified-lines").textContent = getLines(modifiedModel.getValue()).length;
+            byId("added-lines").textContent = added;
+            byId("removed-lines").textContent = removed;
+            const similarity = calculateSimilarity(originalModel.getValue(), modifiedModel.getValue());
+            byId("similarity-value").textContent = similarity + "%";
+            byId("similarity-bar").style.width = similarity + "%";
+        }
+
+        function setViewMode(inline) {
+            state.inline = inline;
+            diffEditor?.updateOptions({ renderSideBySide: !inline });
+            const sideBtn = byId("side-mode"), inlineBtn = byId("inline-mode");
+            const activeClass = "flex items-center gap-2 rounded-lg bg-white dark:bg-white/10 shadow-sm px-4 py-2 text-sm font-semibold text-gray-900 dark:text-white transition-all";
+            const inactiveClass = "flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all";
+            sideBtn.className = inline ? inactiveClass : activeClass;
+            inlineBtn.className = inline ? activeClass : inactiveClass;
+        }
+
+        async function loadFile(file, target) {
+            if (!file) return;
+            const content = await file.text();
+            if (target === "original") {
+                byId("original-filename").value = file.name;
+                state.originalCode = content;
+                originalModel.setValue(content);
+            } else {
+                byId("modified-filename").value = file.name;
+                state.modifiedCode = content;
+                modifiedModel.setValue(content);
+            }
+            showToast(file.name + " loaded");
+        }
+
+        function configureDropZone(zoneId, target) {
+            const zone = byId(zoneId);
+            ["dragenter", "dragover"].forEach(evt => zone.addEventListener(evt, e => { e.preventDefault(); zone.classList.add("drop-active"); }));
+            ["dragleave", "drop"].forEach(evt => zone.addEventListener(evt, e => { e.preventDefault(); zone.classList.remove("drop-active"); }));
+            zone.addEventListener("drop", e => loadFile(e.dataTransfer.files[0], target));
+        }
+
+        async function copyText(value, label) {
+            try { await navigator.clipboard.writeText(value); showToast(label + " copied"); } 
+            catch { showToast("Clipboard blocked"); }
+        }
+
+        function downloadModified() {
+            const blob = new Blob([modifiedModel?.getValue() || state.modifiedCode], { type: "text/plain;charset=utf-8" });
+            const url = URL.createObjectURL(blob);
+            const anchor = document.createElement("a");
+            anchor.href = url;
+            anchor.download = byId("modified-filename").value || "modified.lua";
+            anchor.click();
+            URL.revokeObjectURL(url);
+            showToast("Exported successfully");
+        }
+
+        function escapeHtml(text) {
+            return (text || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        function generateHTMLReport() {
+            if (!diffEditor || !originalModel || !modifiedModel) return;
+
+            const date = new Date().toLocaleString();
+            const rawOrigName = byId("original-filename").value || "original.lua";
+            const rawModName = byId("modified-filename").value || "modified.lua";
+            const origName = escapeHtml(rawOrigName);
+            const modName = escapeHtml(rawModName);
+            
+            const changes = diffEditor.getLineChanges() || [];
+            let diffHtml = '';
+
+            if (changes.length === 0) {
+                diffHtml = '<p class="text-gray-400 italic">No differences found between the scripts.</p>';
+            } else {
+                changes.forEach(change => {
+                    diffHtml += `<div class="mb-6 rounded-xl overflow-hidden border border-gray-800 bg-gray-900 font-mono text-sm shadow-xl">`;
+                    
+                    if (change.originalEndLineNumber > 0) {
+                        for (let i = change.originalStartLineNumber; i <= change.originalEndLineNumber; i++) {
+                            const line = escapeHtml(originalModel.getLineContent(i));
+                            diffHtml += `<div class="bg-red-950/40 text-red-400 px-4 py-1.5 border-l-4 border-red-500 whitespace-pre"><span class="select-none opacity-50 mr-4 w-8 inline-block text-right">${i}</span>- ${line || ' '}</div>`;
+                        }
+                    }
+                    
+                    if (change.modifiedEndLineNumber > 0) {
+                        for (let i = change.modifiedStartLineNumber; i <= change.modifiedEndLineNumber; i++) {
+                            const line = escapeHtml(modifiedModel.getLineContent(i));
+                            diffHtml += `<div class="bg-emerald-950/30 text-emerald-400 px-4 py-1.5 border-l-4 border-emerald-500 whitespace-pre"><span class="select-none opacity-50 mr-4 w-8 inline-block text-right">${i}</span>+ ${line || ' '}</div>`;
+                        }
+                    }
+                    diffHtml += `</div>`;
+                });
+            }
+
+            // Using template literal expression trick to prevent browser from parsing the script close tag
+            const htmlTemplate = `<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comparison Report | Solarglyph Labs</title>
+    <script src="https://cdn.tailwindcss.com"></${'script'}>
+    <script>
+        tailwind.config = { darkMode: 'class' };
+    </${'script'}>
+    <style>
+        body { background-color: #09090b; color: #f4f4f5; font-family: system-ui, -apple-system, sans-serif; }
+        .glass { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); backdrop-filter: blur(12px); }
+    </style>
+</head>
+<body class="min-h-screen p-6 md:p-16">
+    <div class="max-w-4xl mx-auto">
+        <header class="mb-12 border-b border-gray-800 pb-8 flex items-center justify-between">
+            <div>
+                <div class="text-blue-500 text-sm font-bold tracking-widest uppercase mb-2">Solarglyph Labs</div>
+                <h1 class="text-4xl font-bold mb-2">Comparison Report</h1>
+                <p class="text-gray-400">Generated locally on ${date}</p>
+            </div>
+        </header>
+
+        <section class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-12">
+            <div class="glass p-5 rounded-2xl col-span-2 md:col-span-1">
+                <div class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Original</div>
+                <div class="font-mono text-lg truncate" title="${origName}">${origName}</div>
+                <div class="text-sm text-gray-400 mt-1">${byId("original-lines").textContent} lines</div>
+            </div>
+            <div class="glass p-5 rounded-2xl col-span-2 md:col-span-1">
+                <div class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Modified</div>
+                <div class="font-mono text-lg truncate" title="${modName}">${modName}</div>
+                <div class="text-sm text-gray-400 mt-1">${byId("modified-lines").textContent} lines</div>
+            </div>
+            <div class="glass p-5 rounded-2xl border border-emerald-500/20">
+                <div class="text-xs font-bold text-emerald-500 uppercase tracking-wider mb-2">Added</div>
+                <div class="font-mono text-3xl font-bold text-emerald-400">${byId("added-lines").textContent}</div>
+            </div>
+            <div class="glass p-5 rounded-2xl border border-red-500/20">
+                <div class="text-xs font-bold text-red-500 uppercase tracking-wider mb-2">Removed</div>
+                <div class="font-mono text-3xl font-bold text-red-400">${byId("removed-lines").textContent}</div>
+            </div>
+            <div class="glass p-5 rounded-2xl border border-blue-500/30">
+                <div class="text-xs font-bold text-blue-400 uppercase tracking-wider mb-2">Similarity</div>
+                <div class="font-mono text-3xl font-bold text-blue-400">${byId("similarity-value").textContent}</div>
+            </div>
+        </section>
+
+        <section>
+            <h2 class="text-xl font-bold mb-6 text-gray-200">Detailed Change Log</h2>
+            ${diffHtml}
+        </section>
+        
+        <footer class="mt-16 text-center text-sm text-gray-600 border-t border-gray-800 pt-8">
+            &copy; ${new Date().getFullYear()} Solarglyph Labs. This report was generated locally and no code was transmitted to any server.
+        </footer>
+    </div>
+</body>
+</html>`;
+
+            const blob = new Blob([htmlTemplate], { type: "text/html;charset=utf-8" });
+            const url = URL.createObjectURL(blob);
+            const anchor = document.createElement("a");
+            
+            // Generate clean dynamic filename: file1_vs_file2_1234567890.html
+            const cleanOrig = rawOrigName.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9_-]/g, "");
+            const cleanMod = rawModName.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9_-]/g, "");
+            const randomNum = Math.floor(1000000000 + Math.random() * 9000000000); // 10 digit number
+            
+            anchor.href = url;
+            anchor.download = `${cleanOrig}_vs_${cleanMod}_${randomNum}.html`;
+            anchor.click();
+            URL.revokeObjectURL(url);
+            
+            showToast("Report generated successfully");
+        }
+
+        function showToast(message) {
+            const toast = byId("toast");
+            clearTimeout(toastTimeout);
+            byId("toast-message").textContent = message;
+            toast.classList.remove("translate-y-4", "opacity-0");
+            toast.classList.add("translate-y-0", "opacity-100");
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove("translate-y-0", "opacity-100");
+                toast.classList.add("translate-y-4", "opacity-0");
+            }, 2500);
+        }
+
+        function navigateChange(dir) {
+            if (!diffEditor) return;
+            const editor = diffEditor.getModifiedEditor();
+            const changes = diffEditor.getLineChanges() || [];
+            if (!changes.length) return showToast("No changes found");
+            const curr = editor.getPosition()?.lineNumber || 1;
+            let target = dir > 0 ? (changes.find(c => c.modifiedStartLineNumber > curr) || changes[0]) : ([...changes].reverse().find(c => c.modifiedStartLineNumber < curr) || changes[changes.length - 1]);
+            const line = Math.max(1, target.modifiedStartLineNumber);
+            editor.revealLineInCenter(line);
+            editor.setPosition({ lineNumber: line, column: 1 });
+            editor.focus();
+        }
+
+        // Event Listeners
+        byId("editor-theme").addEventListener("change", (e) => { state.manualTheme = e.target.value; monaco.editor.setTheme(currentMonacoTheme()); });
+        byId("toggle-stats-btn").addEventListener("click", () => { byId("stats-grid").classList.toggle("collapsed"); byId("stats-chevron").classList.toggle("collapsed-chevron"); });
+        byId("original-upload").addEventListener("click", () => byId("original-input").click());
+        byId("modified-upload").addEventListener("click", () => byId("modified-input").click());
+        byId("original-input").addEventListener("change", e => { loadFile(e.target.files[0], "original"); e.target.value = ""; });
+        byId("modified-input").addEventListener("change", e => { loadFile(e.target.files[0], "modified"); e.target.value = ""; });
+        byId("original-copy").addEventListener("click", () => copyText(originalModel?.getValue() || "", "Original"));
+        byId("modified-copy").addEventListener("click", () => copyText(modifiedModel?.getValue() || "", "Modified"));
+        byId("side-mode").addEventListener("click", () => setViewMode(false));
+        byId("inline-mode").addEventListener("click", () => setViewMode(true));
+        byId("whitespace-toggle").addEventListener("change", e => { state.ignoreWhitespace = e.target.checked; diffEditor?.updateOptions({ ignoreTrimWhitespace: state.ignoreWhitespace }); updateStatistics(); });
+        
+        byId("swap-button").addEventListener("click", () => {
+            const oldCode = originalModel.getValue();
+            const oldName = byId("original-filename").value;
+            byId("original-filename").value = byId("modified-filename").value;
+            byId("modified-filename").value = oldName;
+            state.originalCode = modifiedModel.getValue();
+            state.modifiedCode = oldCode;
+            updateModels();
+            showToast("Scripts swapped");
+        });
+
+        byId("clear-button").addEventListener("click", () => {
+            byId("original-filename").value = "original.lua";
+            byId("modified-filename").value = "modified.lua";
+            state.originalCode = "";
+            state.modifiedCode = "";
+            updateModels();
+            showToast("Workspace cleared");
+        });
+
+        byId("download-button").addEventListener("click", downloadModified);
+        byId("report-button").addEventListener("click", generateHTMLReport);
+        byId("previous-change").addEventListener("click", () => navigateChange(-1));
+        byId("next-change").addEventListener("click", () => navigateChange(1));
+        
+        configureDropZone("original-drop-zone", "original");
+        configureDropZone("modified-drop-zone", "modified");
+    </script>
+</body>
+</html>

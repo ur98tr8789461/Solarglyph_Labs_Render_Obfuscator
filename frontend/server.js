@@ -1,10 +1,30 @@
 const express = require("express");
 const path = require("path");
 const fs = require("fs");
+const useragent = require("express-useragent"); // 1. Import useragent
+
 const app = express();
-const Version = "1.2.5";
+const Version = "1.0.0";
 
 const PUBLIC_DIR = path.join(__dirname, "public");
+
+// 2. Enable user-agent parsing middleware
+app.use(useragent.express());
+
+// 3. Mobile Redirection Middleware (placed before routing)
+app.use((req, res, next) => {
+  // Prevent redirect loops when serving the incompatible page or static assets
+  if (req.path === "/Incompatible" || req.path === "/Incompatible.html") {
+    return next();
+  }
+
+  // Redirect mobile phones and tablets to the incompatible page
+  if (req.useragent.isMobile || req.useragent.isTablet) {
+    return res.redirect(302, "/Incompatible.html");
+  }
+
+  next();
+});
 
 // Build case-insensitive page map
 function buildPageMap() {
@@ -64,7 +84,7 @@ app.get(/^\/[a-zA-Z0-9\-_/]*$/, (req, res, next) => {
 
 // 404 Fallback
 app.use((req, res) => {
-  res.status(404).send("Page not found");
+  res.status(404).sendFile(path.join(__dirname, "public", "404.html"));
 });
 
 // Start server
