@@ -67,7 +67,7 @@ class SiteNav extends HTMLElement {
         const links = isToolHome
             ? `<a href="#features" class="scroll-link text-sm font-medium hover:text-solarglyph dark:hover:text-blue-400 transition-colors">Features</a>
                <a href="#pricing" class="scroll-link text-sm font-medium hover:text-solarglyph dark:hover:text-blue-400 transition-colors">Pricing</a>
-               <a href="${SCRIPT_COMPARISON_URL}" class="text-sm font-medium hover:text-solarglyph dark:hover:text-blue-400 transition-colors">Script Comparison</a>
+               <a href="${Script_Comparison_URL}" class="text-sm font-medium hover:text-solarglyph dark:hover:text-blue-400 transition-colors">Script Comparison</a>
                <a href="${MAIN_SITE_URL}" class="text-sm font-medium hover:text-solarglyph dark:hover:text-blue-400 transition-colors">Solarglyph Labs</a>
                ${docsDropdown}`
             : isDashboard

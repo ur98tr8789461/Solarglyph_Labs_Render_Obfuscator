@@ -3,7 +3,7 @@ const path = require("path");
 const fs = require("fs");
 
 const app = express();
-const Version = "1.5.0 (13-Sep-2026) - Updated 404 handling, added canonical URL redirects, and improved mobile detection.";
+const Version = "1.5.1 (13-Sep-2026) - Added Script Comparison Page, Updated Navigation Bar, and Improved Mobile Detection, with Canonical URL Handling and Case-Insensitive Routing";
 
 const PUBLIC_DIR = path.join(__dirname, "public");
 
