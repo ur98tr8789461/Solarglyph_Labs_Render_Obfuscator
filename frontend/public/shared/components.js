@@ -18,6 +18,7 @@ const MAIN_SITE_URL = 'https://www.solarglyphlabs.com';
 const OBFUSCATE_HOME_URL = '/';
 const APP_URL = '/Signup.html';
 const Dashboard_URL = '/Dashboard.html';
+const Script_Comparison_URL = '/ScriptComparison.html';
 const STATUS_URL = `${MAIN_SITE_URL}/status`;
 const TERMS_URL = `${MAIN_SITE_URL}/termsandconditions`;
 const DISCORD_URL = 'https://discord.gg/CZaJZCxJxp';
@@ -66,6 +67,7 @@ class SiteNav extends HTMLElement {
         const links = isToolHome
             ? `<a href="#features" class="scroll-link text-sm font-medium hover:text-solarglyph dark:hover:text-blue-400 transition-colors">Features</a>
                <a href="#pricing" class="scroll-link text-sm font-medium hover:text-solarglyph dark:hover:text-blue-400 transition-colors">Pricing</a>
+               <a href="${SCRIPT_COMPARISON_URL}" class="text-sm font-medium hover:text-solarglyph dark:hover:text-blue-400 transition-colors">Script Comparison</a>
                <a href="${MAIN_SITE_URL}" class="text-sm font-medium hover:text-solarglyph dark:hover:text-blue-400 transition-colors">Solarglyph Labs</a>
                ${docsDropdown}`
             : isDashboard
@@ -140,6 +142,7 @@ class SiteFooter extends HTMLElement {
                             <ul class="space-y-3 text-sm text-gray-600 dark:text-gray-400">
                                 <li><a href="${OBFUSCATE_HOME_URL}" class="hover:text-solarglyph dark:hover:text-blue-400 transition-colors">Obfuscator</a></li>
                                 <li><a href="${Dashboard_URL}" class="hover:text-solarglyph dark:hover:text-blue-400 transition-colors">Dashboard</a></li>
+                                <li><a href="${Script_Comparison_URL}" class="hover:text-solarglyph dark:hover:text-blue-400 transition-colors">Script Comparison</a></li>
                                 <li><a href="${MAIN_SITE_URL}" class="hover:text-solarglyph dark:hover:text-blue-400 transition-colors">Solarglyph Labs</a></li>
                             </ul>
                         </div>
