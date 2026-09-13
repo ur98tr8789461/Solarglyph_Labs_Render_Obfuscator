@@ -1,25 +1,26 @@
 const express = require("express");
 const path = require("path");
 const fs = require("fs");
-const useragent = require("express-useragent"); // 1. Import useragent
 
 const app = express();
-const Version = "1.0.0";
+const Version = "1.5.0 (13-Sep-2026) - Updated 404 handling, added canonical URL redirects, and improved mobile detection.";
 
 const PUBLIC_DIR = path.join(__dirname, "public");
 
 // 2. Enable user-agent parsing middleware
-app.use(useragent.express());
 
 // 3. Mobile Redirection Middleware (placed before routing)
+// Native Mobile/Tablet Detection Middleware
 app.use((req, res, next) => {
-  // Prevent redirect loops when serving the incompatible page or static assets
+  // Prevent redirect loops
   if (req.path === "/Incompatible" || req.path === "/Incompatible.html") {
     return next();
   }
 
-  // Redirect mobile phones and tablets to the incompatible page
-  if (req.useragent.isMobile || req.useragent.isTablet) {
+  const ua = req.headers["user-agent"] || "";
+  const isMobileOrTablet = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+
+  if (isMobileOrTablet) {
     return res.redirect(302, "/Incompatible.html");
   }
 
